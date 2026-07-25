@@ -1,0 +1,14 @@
+[project]
+name = "greek-tv-highlights-radar"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "httpx",
+  "beautifulsoup4",
+  "duckdb",
+  "pydantic",
+  "python-dotenv"
+]
+
+[project.optional-dependencies]
+dev = ["pytest","ruff"]
