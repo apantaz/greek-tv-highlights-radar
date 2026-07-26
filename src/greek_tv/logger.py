@@ -1,3 +1,7 @@
 import logging
-logging.basicConfig(level=logging.INFO)
-logger=logging.getLogger(__name__)
+import os
+
+
+def configure_logging() -> None:
+    level = os.getenv("LOG_LEVEL", "INFO").upper()
+    logging.basicConfig(level=level, format="%(levelname)s %(name)s: %(message)s")

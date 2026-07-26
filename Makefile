@@ -6,3 +6,5 @@ test:
 
 lint:
 	ruff check .
+
+check: lint test
