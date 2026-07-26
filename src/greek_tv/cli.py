@@ -27,9 +27,7 @@ def main() -> None:
             database_path=database_path(),
             raw_root=raw_data_dir(),
         )
-        logging.getLogger(__name__).info(
-            "stored %d broadcasts; raw snapshot: %s", count, snapshot
-        )
+        logging.getLogger(__name__).info("stored %d broadcasts; raw snapshot: %s", count, snapshot)
 
 
 if __name__ == "__main__":
