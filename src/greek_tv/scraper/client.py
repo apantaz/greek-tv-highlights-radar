@@ -17,7 +17,9 @@ class ScheduleClient:
             channel_id, channel_name = CHANNELS[channel.lower()]
         except KeyError as error:
             supported = ", ".join(sorted(CHANNELS))
-            raise ValueError(f"unsupported channel {channel!r}; choose one of: {supported}") from error
+            raise ValueError(
+                f"unsupported channel {channel!r}; choose one of: {supported}"
+            ) from error
         encoded_name = quote(channel_name, safe="")
         return f"{BASE_URL}/free/{channel_id}/{encoded_name}?date={schedule_date.isoformat()}"
 

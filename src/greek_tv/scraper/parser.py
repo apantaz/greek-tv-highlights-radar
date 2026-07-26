@@ -65,7 +65,9 @@ def parse_schedule(
         if previous_minutes is not None and minutes < previous_minutes:
             day_offset += 1
         starts.append(
-            datetime.combine(schedule_date + timedelta(days=day_offset), datetime.min.time(), ATHENS)
+            datetime.combine(
+                schedule_date + timedelta(days=day_offset), datetime.min.time(), ATHENS
+            )
             + timedelta(minutes=minutes)
         )
         previous_minutes = minutes

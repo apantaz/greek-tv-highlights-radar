@@ -8,9 +8,7 @@ from greek_tv.scraper.client import ScheduleClient, save_snapshot
 def test_builds_date_addressable_channel_url():
     url = ScheduleClient().source_url("ert1", date(2026, 7, 19))
 
-    assert url == (
-        "https://programmatileorasis.gr/free/18/%CE%95%CE%A1%CE%A41?date=2026-07-19"
-    )
+    assert url == ("https://programmatileorasis.gr/free/18/%CE%95%CE%A1%CE%A41?date=2026-07-19")
 
 
 def test_rejects_unknown_channel():

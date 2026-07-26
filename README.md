@@ -28,6 +28,42 @@ make check
 greek-tv ingest --channel ert1 --date 2026-07-19
 ```
 
+`make install` also installs Git hooks. Before each commit, pre-commit checks file
+hygiene, malformed configuration, merge markers, private keys, Python lint, and
+formatting. Commitizen validates commit messages against Conventional Commits, and
+before each push the full test suite runs.
+
+Run the same gates manually:
+
+```bash
+make pre-commit
+make pre-push
+```
+
+Commit messages use `<type>[optional scope]: <description>`, for example:
+
+```text
+feat: add ERT1 schedule ingestion
+fix(parser): handle schedules crossing midnight
+chore: configure pre-commit hooks
+docs: document local setup
+```
+
+Run `cz commit` for an interactive prompt, or continue using `git commit` normally;
+the `commit-msg` hook rejects messages that do not follow the convention.
+
+Direct commits on `main` and `master` are blocked by `no-commit-to-branch`. The
+pre-push guard also blocks any push whose remote destination is one of those protected
+branches. Create a feature branch and merge it through a pull request:
+
+```bash
+git switch -c feat/my-change
+git push -u origin feat/my-change
+```
+
+For server-side enforcement that cannot be bypassed with `--no-verify`, enable a
+GitHub branch protection rule requiring pull requests for `main`.
+
 By default, the command writes source snapshots under `data/raw/` and broadcasts to
 `data/greek_tv.duckdb`. Override these locations with `RAW_DATA_DIR` and
 `DUCKDB_PATH`.
