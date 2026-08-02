@@ -70,6 +70,7 @@ repos:
           - dbt
           - ++profiles-dir
           - dbt
+          - --
         stages: [pre-push]
       - id: dbt-docs-generate
         entry: env DBT_DUCKDB_PATH=data/greek_tv.duckdb dbt-docs-generate
