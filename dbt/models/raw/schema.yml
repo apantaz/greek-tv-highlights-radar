@@ -1,0 +1,101 @@
+version: 2
+
+models:
+  - name: raw_ingestion_runs
+    description: "{{ doc('raw_ingestion_runs') }}"
+    columns:
+      - name: run_id
+        description: "{{ doc('raw_ingestion_runs_run_id') }}"
+        data_tests:
+          - not_null
+          - unique
+      - name: source
+        description: "{{ doc('raw_ingestion_runs_source') }}"
+        data_tests:
+          - not_null
+      - name: channel
+        description: "{{ doc('raw_ingestion_runs_channel') }}"
+        data_tests:
+          - not_null
+      - name: schedule_date
+        description: "{{ doc('raw_ingestion_runs_schedule_date') }}"
+        data_tests:
+          - not_null
+      - name: source_url
+        description: "{{ doc('raw_ingestion_runs_source_url') }}"
+        data_tests:
+          - not_null
+      - name: started_at
+        description: "{{ doc('raw_ingestion_runs_started_at') }}"
+        data_tests:
+          - not_null
+      - name: completed_at
+        description: "{{ doc('raw_ingestion_runs_completed_at') }}"
+      - name: status
+        description: "{{ doc('raw_ingestion_runs_status') }}"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [running, succeeded, failed]
+      - name: records_parsed
+        description: "{{ doc('raw_ingestion_runs_records_parsed') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+      - name: snapshot_path
+        description: "{{ doc('raw_ingestion_runs_snapshot_path') }}"
+      - name: error_message
+        description: "{{ doc('raw_ingestion_runs_error_message') }}"
+
+  - name: raw_broadcast_observations
+    description: "{{ doc('raw_broadcast_observations') }}"
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "ends_at is null or ends_at > starts_at"
+    columns:
+      - name: observation_id
+        description: "{{ doc('raw_broadcast_observations_observation_id') }}"
+        data_tests:
+          - not_null
+          - unique
+      - name: run_id
+        description: "{{ doc('raw_broadcast_observations_run_id') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('raw_ingestion_runs')
+                field: run_id
+      - name: broadcast_id
+        description: "{{ doc('raw_broadcast_observations_broadcast_id') }}"
+        data_tests:
+          - not_null
+      - name: channel
+        description: "{{ doc('raw_broadcast_observations_channel') }}"
+        data_tests:
+          - not_null
+      - name: title
+        description: "{{ doc('raw_broadcast_observations_title') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: starts_at
+        description: "{{ doc('raw_broadcast_observations_starts_at') }}"
+        data_tests:
+          - not_null
+      - name: ends_at
+        description: "{{ doc('raw_broadcast_observations_ends_at') }}"
+      - name: description
+        description: "{{ doc('raw_broadcast_observations_description') }}"
+      - name: source_url
+        description: "{{ doc('raw_broadcast_observations_source_url') }}"
+        data_tests:
+          - not_null
+      - name: retrieved_at
+        description: "{{ doc('raw_broadcast_observations_retrieved_at') }}"
+        data_tests:
+          - not_null

@@ -1,9 +1,18 @@
-{% docs raw_tables %}
+{% docs raw_ingestion_runs %}
 
-# Raw tables
+# Raw ingestion runs
 
-Raw dbt models clean, rename, and type source fields while preserving the source
-grain. They should contain minimal business logic and remain traceable to one source
-relation.
+Typed, analysis-ready projection of immutable ingestion attempts. The model preserves
+the source grain of one row per attempted source, channel, and schedule date
+ingestion.
+
+{% enddocs %}
+
+{% docs raw_broadcast_observations %}
+
+# Raw broadcast observations
+
+Typed, analysis-ready projection of programme observations. The model preserves the
+source grain of one programme row observed during one successful ingestion run.
 
 {% enddocs %}

@@ -11,10 +11,10 @@ Version `v0.3.0` completed reliable multi-channel ingestion from
 discovered at runtime, each channel receives an isolated ingestion run, and partial
 batch failures remain visible without preventing other channels from completing.
 
-The current delivery starts the `v0.4.0` analytics warehouse. It adds a
-repository-local dbt project, declares the immutable ingestion relations as dbt
-sources, and validates the project through CI and pre-push quality gates. Staging and
-analytical models are the next separately reviewable delivery.
+The current delivery advances the `v0.4.0` analytics warehouse with its first raw
+models. Two documented views preserve the ingestion grains and expose explicit
+columns, while 23 data tests enforce keys, relationships, required fields, valid run
+states, record counts, and schedule timestamp ordering.
 
 ```text
 ProgrammaTileorasis.gr
@@ -24,6 +24,7 @@ ProgrammaTileorasis.gr
   → append-only observations
   → current schedule view
   → documented dbt source boundary
+  → tested raw dbt views
 ```
 
 The current source adapter discovers the free channels advertised by the upstream
@@ -69,7 +70,8 @@ partial failures visible to schedulers and CI.
 
 The repository includes a local dbt project configured for the same DuckDB database.
 The ingestion tables are declared as documented dbt sources, establishing the
-read-only boundary between Python ingestion and SQL transformation.
+read-only boundary between Python ingestion and SQL transformation. Tested raw views
+are materialized in `greek_tv_raw` without changing source data.
 
 Run dbt directly from its project directory:
 
@@ -168,6 +170,8 @@ order by starts_at;
   no user-specific profile.
 - dbt-checkpoint validates parsing, compilation, and documentation generation before
   pushes.
+- The raw warehouse layer has explicit columns, persisted documentation, and 23 data
+  tests covering its key source contracts.
 - CI runs Ruff, pytest, and dbt foundation validation on every pull request and push
   to `main`.
 
