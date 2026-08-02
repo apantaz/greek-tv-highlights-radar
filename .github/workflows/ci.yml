@@ -20,3 +20,11 @@ jobs:
           ruff format --check .
       - name: Test
         run: pytest
+      - name: Validate dbt foundation
+        working-directory: dbt
+        env:
+          DBT_DUCKDB_PATH: /tmp/greek_tv_ci.duckdb
+        run: |
+          dbt deps
+          dbt debug
+          dbt parse

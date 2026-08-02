@@ -21,14 +21,23 @@
 - [x] Add representative commercial and public channels
 - [x] Add batch ingestion with isolated per-channel failures
 
-## Milestone 3 — Enrichment and entity resolution
+## Milestone 3 — Analytics warehouse foundation
+
+- [x] Configure a repository-local dbt-duckdb project
+- [x] Declare ingestion relations as documented dbt sources
+- [x] Add reproducible direct dbt commands and CI/pre-push validation
+- [ ] Add raw models and source-boundary tests
+- [ ] Add intermediate latest-successful-run logic
+- [ ] Add dimensional, fact, and initial mart models
+- [ ] Generate dbt documentation and lineage artifacts
+
+## Milestone 4 — Enrichment and entity resolution
 
 - Normalize Greek and international titles
 - Retrieve and cache TMDB candidates
 - Score matches with explainable confidence and manual overrides
 
-## Milestone 4 — Analytics and product
+## Milestone 5 — Analytics product
 
-- Model staging and analytical layers with dbt
 - Rank transparent daily highlights
 - Build archive search and pipeline-status views in Streamlit

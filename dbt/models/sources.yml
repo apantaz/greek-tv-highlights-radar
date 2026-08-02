@@ -1,0 +1,58 @@
+version: 2
+
+sources:
+  - name: ingestion
+    description: >-
+      Immutable ingestion audit records and source observations written by the Python
+      pipeline. dbt reads these relations but never mutates them.
+    schema: main
+    tables:
+      - name: ingestion_runs
+        description: One attempted schedule ingestion for a source, channel, and date.
+        columns:
+          - name: run_id
+            description: Unique identifier assigned before ingestion work begins.
+          - name: source
+            description: Upstream schedule source identifier.
+          - name: channel
+            description: Channel display name observed during catalog discovery.
+          - name: schedule_date
+            description: Calendar date requested from the source.
+          - name: source_url
+            description: Date-addressable upstream schedule URL.
+          - name: started_at
+            description: UTC timestamp at which the run began.
+          - name: completed_at
+            description: UTC timestamp at which the run succeeded or failed.
+          - name: status
+            description: Current run state; running, succeeded, or failed.
+          - name: records_parsed
+            description: Number of observations atomically persisted by a successful run.
+          - name: snapshot_path
+            description: Local path to the immutable raw HTML response, when available.
+          - name: error_message
+            description: Bounded diagnostic message for a failed run.
+
+      - name: broadcast_observations
+        description: One programme row observed in one successful ingestion run.
+        columns:
+          - name: observation_id
+            description: Stable identifier for a broadcast within an ingestion run.
+          - name: run_id
+            description: Ingestion run that produced this observation.
+          - name: broadcast_id
+            description: Source-observation identity derived from schedule attributes.
+          - name: channel
+            description: Channel display name associated with the programme.
+          - name: title
+            description: Programme title as observed in the source schedule.
+          - name: starts_at
+            description: Timezone-aware scheduled start timestamp.
+          - name: ends_at
+            description: Derived scheduled end timestamp, when another programme follows.
+          - name: description
+            description: Optional programme description supplied by the source.
+          - name: source_url
+            description: Upstream page from which the observation was parsed.
+          - name: retrieved_at
+            description: UTC timestamp at which the source response was retrieved.
