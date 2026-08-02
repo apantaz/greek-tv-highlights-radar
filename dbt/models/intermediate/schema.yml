@@ -1,0 +1,124 @@
+version: 2
+
+models:
+  - name: int_latest_successful_ingestion_runs
+    description: "{{ doc('int_latest_successful_ingestion_runs') }}"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source
+              - channel
+              - schedule_date
+    columns:
+      - name: run_id
+        description: "{{ doc('int_latest_successful_ingestion_runs_run_id') }}"
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('raw_ingestion_runs')
+                field: run_id
+      - name: source
+        description: "{{ doc('int_latest_successful_ingestion_runs_source') }}"
+        data_tests:
+          - not_null
+      - name: channel
+        description: "{{ doc('int_latest_successful_ingestion_runs_channel') }}"
+        data_tests:
+          - not_null
+      - name: schedule_date
+        description: "{{ doc('int_latest_successful_ingestion_runs_schedule_date') }}"
+        data_tests:
+          - not_null
+      - name: source_url
+        description: "{{ doc('int_latest_successful_ingestion_runs_source_url') }}"
+        data_tests:
+          - not_null
+      - name: started_at
+        description: "{{ doc('int_latest_successful_ingestion_runs_started_at') }}"
+        data_tests:
+          - not_null
+      - name: completed_at
+        description: "{{ doc('int_latest_successful_ingestion_runs_completed_at') }}"
+        data_tests:
+          - not_null
+      - name: status
+        description: "{{ doc('int_latest_successful_ingestion_runs_status') }}"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [succeeded]
+      - name: records_parsed
+        description: "{{ doc('int_latest_successful_ingestion_runs_records_parsed') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+      - name: snapshot_path
+        description: "{{ doc('int_latest_successful_ingestion_runs_snapshot_path') }}"
+
+  - name: int_current_broadcasts
+    description: "{{ doc('int_current_broadcasts') }}"
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "ends_at is null or ends_at > starts_at"
+    columns:
+      - name: observation_id
+        description: "{{ doc('int_current_broadcasts_observation_id') }}"
+        data_tests:
+          - not_null
+          - unique
+      - name: broadcast_id
+        description: "{{ doc('int_current_broadcasts_broadcast_id') }}"
+        data_tests:
+          - not_null
+      - name: run_id
+        description: "{{ doc('int_current_broadcasts_run_id') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_latest_successful_ingestion_runs')
+                field: run_id
+      - name: source
+        description: "{{ doc('int_current_broadcasts_source') }}"
+        data_tests:
+          - not_null
+      - name: channel
+        description: "{{ doc('int_current_broadcasts_channel') }}"
+        data_tests:
+          - not_null
+      - name: schedule_date
+        description: "{{ doc('int_current_broadcasts_schedule_date') }}"
+        data_tests:
+          - not_null
+      - name: title
+        description: "{{ doc('int_current_broadcasts_title') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: starts_at
+        description: "{{ doc('int_current_broadcasts_starts_at') }}"
+        data_tests:
+          - not_null
+      - name: ends_at
+        description: "{{ doc('int_current_broadcasts_ends_at') }}"
+      - name: description
+        description: "{{ doc('int_current_broadcasts_description') }}"
+      - name: source_url
+        description: "{{ doc('int_current_broadcasts_source_url') }}"
+        data_tests:
+          - not_null
+      - name: retrieved_at
+        description: "{{ doc('int_current_broadcasts_retrieved_at') }}"
+        data_tests:
+          - not_null
+      - name: ingestion_completed_at
+        description: "{{ doc('int_current_broadcasts_ingestion_completed_at') }}"
+        data_tests:
+          - not_null

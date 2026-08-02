@@ -72,6 +72,11 @@ It preserves source grains and column meaning while enforcing source-boundary
 contracts through dbt tests. Intermediate, dimensional, and mart models are added as
 separately reviewable deliveries.
 
+The intermediate layer ranks successful runs within each
+`source/channel/schedule_date` partition by completion time, start time, and run ID.
+`int_current_broadcasts` joins observations only to those selected runs, providing a
+deterministic current schedule without deleting superseded history.
+
 ## Data grains
 
 See the [data model](data-model.md) for the current entity-relationship diagram and
@@ -81,6 +86,9 @@ view lineage.
 - `broadcast_observations`: one programme row observed in one ingestion run.
 - `current_broadcasts`: programmes from the latest successful run for each
   source/channel/date partition.
+- `int_latest_successful_ingestion_runs`: dbt-owned latest successful run per
+  source/channel/date partition.
+- `int_current_broadcasts`: dbt-owned programme observations for those selected runs.
 - `broadcasts`: preserved milestone-one table; migrated non-destructively and retained
   for audit compatibility.
 

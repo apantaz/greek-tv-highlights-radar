@@ -1,9 +1,19 @@
-{% docs intermediate_tables %}
+{% docs int_latest_successful_ingestion_runs %}
 
-# Intermediate tables
+# Latest successful ingestion runs
 
-Intermediate models implement reusable transformations between raw models and
-business-facing marts. They remain focused on one transformation responsibility and
-are not intended as final consumer interfaces.
+One latest successful ingestion run per source, channel, and requested schedule date.
+Runs are selected deterministically by completion time, start time, and run identifier
+so downstream schedules never depend on database row order.
+
+{% enddocs %}
+
+{% docs int_current_broadcasts %}
+
+# Current broadcasts
+
+Programme observations belonging to the latest successful ingestion run for each
+source, channel, and requested schedule date. The model excludes failed attempts and
+superseded successful observations while preserving their complete history upstream.
 
 {% enddocs %}

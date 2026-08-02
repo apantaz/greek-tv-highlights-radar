@@ -4,9 +4,9 @@ This directory contains the repository-local dbt project for transforming ingest
 data in DuckDB. Both the project and profile are version-controlled so contributors
 do not need a user-specific `~/.dbt/profiles.yml`.
 
-The project declares the ingestion relations as dbt sources and projects them into
-two tested raw views. Intermediate and mart models are delivered in subsequent
-milestones.
+The project declares the ingestion relations as dbt sources, projects them into two
+tested raw views, and derives the latest successful schedule through two intermediate
+views. Business-facing marts are delivered in subsequent milestones.
 
 The development target uses `greek_tv` as its base schema. dbt combines that base
 with each model folder's custom schema:
@@ -73,6 +73,12 @@ Build the raw layer and its source-boundary tests with:
 
 ```bash
 dbt build --select path:models/raw
+```
+
+Build the intermediate layer together with its upstream raw dependencies:
+
+```bash
+dbt build --select +path:models/intermediate
 ```
 
 The pre-push hooks use dbt-checkpoint to parse the project, compile changed SQL

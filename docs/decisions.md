@@ -77,3 +77,12 @@ The first transformation layer selects explicit source columns without introduci
 business logic. Views keep local builds lightweight and avoid duplicating immutable
 ingestion data. Tests define the source contract before downstream transformations
 depend on it; intermediate models will own reusable business logic.
+
+## ADR-011
+Current schedules are selected deterministically in the dbt intermediate layer.
+
+Successful runs are ranked within each source, channel, and requested schedule date
+by completion timestamp, start timestamp, and run identifier. The final tie-breaker
+prevents database row order from influencing current state. Observations are joined
+to the selected run IDs, preserving full history upstream while giving marts a stable
+current-schedule interface.
