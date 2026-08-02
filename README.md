@@ -25,8 +25,9 @@ ProgrammaTileorasis.gr
 ```
 
 The current source adapter discovers the free channels advertised by the upstream
-source at runtime. Batch orchestration comes next; TMDB enrichment, dbt models,
-recommendations, and Streamlit follow after the ingestion boundary is reliable.
+source at runtime and can ingest the complete catalog with isolated per-channel
+failures. TMDB enrichment, dbt models, recommendations, and Streamlit follow now that
+the ingestion boundary is reliable.
 
 ## Quick start
 
@@ -50,6 +51,17 @@ For example:
 ```bash
 greek-tv ingest --channel alpha --date 2026-07-19
 ```
+
+Ingest every channel currently advertised by the source:
+
+```bash
+greek-tv ingest-all --date 2026-07-19
+```
+
+Batch ingestion discovers the catalog once and processes channels sequentially. One
+failed channel does not stop the remaining schedules, and the command prints a final
+success/failure summary. It exits with status `1` if any channel failed, making
+partial failures visible to schedulers and CI.
 
 `make install` also installs Git hooks. Before each commit, pre-commit checks file
 hygiene, malformed configuration, merge markers, private keys, Python lint, and
@@ -118,6 +130,7 @@ order by starts_at;
 
 - Source-specific parsing is isolated behind a small adapter.
 - Typed channel discovery separates stable CLI aliases from source identifiers and names.
+- Batch ingestion isolates channel failures and returns a machine-visible partial-failure status.
 - Every attempted ingestion has auditable success or failure metadata.
 - Raw snapshots and parsed observations are immutable and run-addressed.
 - The current schedule is derived from the latest successful run rather than updated in place.

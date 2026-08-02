@@ -19,7 +19,7 @@
 - [x] Enforce schedule quality thresholds
 - [x] Migrate milestone-one databases non-destructively
 - [x] Add representative commercial and public channels
-- [ ] Add batch ingestion with isolated per-channel failures
+- [x] Add batch ingestion with isolated per-channel failures
 
 ## Milestone 3 — Enrichment and entity resolution
 
