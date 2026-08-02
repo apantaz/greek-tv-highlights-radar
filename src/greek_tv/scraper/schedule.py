@@ -9,7 +9,8 @@ from greek_tv.config import http_max_attempts, http_timeout_seconds, minimum_sch
 from greek_tv.database import IngestionRepository
 from greek_tv.ingestion.quality import validate_schedule
 from greek_tv.models import IngestionRun, IngestionStatus
-from greek_tv.scraper.client import CHANNELS, SOURCE_NAME, ScheduleClient, save_snapshot
+from greek_tv.scraper.channels import resolve_channel
+from greek_tv.scraper.client import SOURCE_NAME, ScheduleClient, save_snapshot
 from greek_tv.scraper.parser import parse_schedule
 
 
@@ -42,27 +43,21 @@ def ingest_schedule(
     run_id_factory: Callable[[], str] = _run_id,
 ) -> IngestionRun:
     """Fetch, snapshot, validate, and persist one channel/date schedule."""
-    normalized_channel = channel.lower()
-    try:
-        channel_id, channel_name = CHANNELS[normalized_channel]
-    except KeyError as error:
-        supported = ", ".join(sorted(CHANNELS))
-        raise ValueError(f"unsupported channel {channel!r}; choose one of: {supported}") from error
-
     client = client or ScheduleClient(
         timeout=http_timeout_seconds(),
         max_attempts=http_max_attempts(),
     )
+    definition = resolve_channel(client.fetch_catalog(), channel)
     if minimum_records is None:
         minimum_records = minimum_schedule_records()
     repository = IngestionRepository(database_path)
     run_id = run_id_factory()
-    source_url = client.source_url(normalized_channel, schedule_date)
+    source_url = client.source_url(definition, schedule_date)
     started_at = clock()
     run = IngestionRun(
         run_id=run_id,
         source=SOURCE_NAME,
-        channel=channel_name,
+        channel=definition.display_name,
         schedule_date=schedule_date,
         source_url=source_url,
         started_at=started_at,
@@ -72,19 +67,19 @@ def ingest_schedule(
 
     snapshot_path: Path | None = None
     try:
-        html, response_url = client.fetch(normalized_channel, schedule_date)
+        html, response_url = client.fetch(definition, schedule_date)
         snapshot_path = save_snapshot(
             html,
             raw_root,
-            normalized_channel,
+            definition.slug,
             schedule_date,
             run_id,
         )
         retrieved_at = clock()
         broadcasts = parse_schedule(
             html,
-            channel_id=channel_id,
-            channel=channel_name,
+            channel_id=definition.source_id,
+            channel=definition.display_name,
             schedule_date=schedule_date,
             source_url=response_url,
             retrieved_at=retrieved_at,

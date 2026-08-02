@@ -40,3 +40,13 @@ Retries are bounded and limited to transient failures.
 Transport failures and selected temporary HTTP statuses use exponential backoff.
 Permanent client errors fail immediately, avoiding unnecessary load on the source and
 making configuration or URL problems visible.
+
+## ADR-007
+Channel membership is discovered from the source at runtime.
+
+Source identifiers and display names are parsed from `.channels_list` before
+ingestion. Known identifiers receive stable lowercase aliases for usability, but the
+alias mapping does not determine catalog membership. Newly added channels are exposed
+through their numeric identifier and a `channel-<id>` fallback; removed channels stop
+resolving. This avoids silently freezing a changing upstream catalog in application
+code.

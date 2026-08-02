@@ -23,6 +23,16 @@ parser selects only the matching channel table and ignores navigation rows. When
 displayed times wrap from late evening to early morning, subsequent broadcasts are
 assigned to the next calendar day in the `Europe/Athens` timezone.
 
+A typed discovery adapter parses source identifiers and display names from the
+source's `.channels_list` element. Known source identifiers receive stable readable
+aliases, while a newly advertised identifier receives a `channel-<id>` fallback.
+Every single-channel or future batch invocation therefore uses the catalog currently
+advertised by the source instead of assuming static membership.
+
+Catalog discovery is a precondition to creating an ingestion run because the run's
+channel identity and source URL are not known beforehand. Once resolved, schedule
+fetching and parsing remain inside the audited run boundary.
+
 ## Data grains
 
 See the [data model](data-model.md) for the current entity-relationship diagram and

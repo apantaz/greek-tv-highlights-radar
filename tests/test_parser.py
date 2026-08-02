@@ -1,4 +1,5 @@
 from datetime import UTC, date, datetime
+from pathlib import Path
 
 import pytest
 
@@ -42,3 +43,37 @@ def test_rolls_early_morning_programmes_into_next_calendar_day(schedule_html):
 def test_rejects_missing_schedule_table():
     with pytest.raises(ScheduleParseError, match="channel18"):
         parse("<html></html>")
+
+
+@pytest.mark.parametrize(
+    ("fixture_name", "channel_id", "channel", "first_title"),
+    [
+        ("programmatileorasis_ert2_2026-07-19.html", 87, "ΕΡΤ2", "Το Αλάτι της Γης"),
+        (
+            "programmatileorasis_alpha_2026-07-19.html",
+            5,
+            "ALPHA",
+            "Κεντρικό Δελτίο Ειδήσεων",
+        ),
+    ],
+)
+def test_parses_representative_channel_fixtures(
+    fixture_name,
+    channel_id,
+    channel,
+    first_title,
+):
+    fixture = Path(__file__).parent / "fixtures" / "schedules" / fixture_name
+
+    broadcasts = parse_schedule(
+        fixture.read_text(encoding="utf-8"),
+        channel_id=channel_id,
+        channel=channel,
+        schedule_date=date(2026, 7, 19),
+        source_url=f"https://example.test/{channel_id}",
+        retrieved_at=RETRIEVED_AT,
+    )
+
+    assert len(broadcasts) == 3
+    assert broadcasts[0].channel == channel
+    assert broadcasts[0].title == first_title

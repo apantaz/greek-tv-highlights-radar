@@ -18,7 +18,7 @@
 - [x] Preserve append-only observations and derive the current schedule
 - [x] Enforce schedule quality thresholds
 - [x] Migrate milestone-one databases non-destructively
-- [ ] Add representative commercial and public channels
+- [x] Add representative commercial and public channels
 - [ ] Add batch ingestion with isolated per-channel failures
 
 ## Milestone 3 — Enrichment and entity resolution
