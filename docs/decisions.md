@@ -69,3 +69,11 @@ overridable for local development and CI. Python retains ownership of immutable
 ingestion tables, while dbt is limited to derived analytical relations. This keeps
 the write boundary explicit and prevents transformations from altering source
 history.
+
+## ADR-010
+Raw dbt models are views that preserve source grain.
+
+The first transformation layer selects explicit source columns without introducing
+business logic. Views keep local builds lightweight and avoid duplicating immutable
+ingestion data. Tests define the source contract before downstream transformations
+depend on it; intermediate models will own reusable business logic.

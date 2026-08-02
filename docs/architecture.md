@@ -67,9 +67,10 @@ persisted on relations and columns so the warehouse remains self-documenting.
 Seeds share the `greek_tv_raw` schema, timestamp-strategy snapshots target
 `snapshots`, and data-test failures are not persisted by default.
 
-The initial foundation contains source metadata and project validation only. Staging,
-intermediate, dimensional, and mart models are added as separately reviewable
-deliveries.
+The raw layer exposes `raw_ingestion_runs` and `raw_broadcast_observations` as views.
+It preserves source grains and column meaning while enforcing source-boundary
+contracts through dbt tests. Intermediate, dimensional, and mart models are added as
+separately reviewable deliveries.
 
 ## Data grains
 

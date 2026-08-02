@@ -26,7 +26,7 @@
 - [x] Configure a repository-local dbt-duckdb project
 - [x] Declare ingestion relations as documented dbt sources
 - [x] Add reproducible direct dbt commands and CI/pre-push validation
-- [ ] Add raw models and source-boundary tests
+- [x] Add raw models and source-boundary tests
 - [ ] Add intermediate latest-successful-run logic
 - [ ] Add dimensional, fact, and initial mart models
 - [ ] Generate dbt documentation and lineage artifacts

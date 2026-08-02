@@ -67,6 +67,19 @@ dbt models exist in this foundation delivery, so the physical ERD above remains
 unchanged. Staging and analytical relations will be added without mutating these
 ingestion-owned tables.
 
+The first derived layer adds two views without changing the source relationships:
+
+```mermaid
+flowchart LR
+    runs[main.ingestion_runs] --> raw_runs[greek_tv_raw.raw_ingestion_runs]
+    observations[main.broadcast_observations] --> raw_observations[greek_tv_raw.raw_broadcast_observations]
+    raw_runs -->|run_id relationship test| raw_observations
+```
+
+Both views preserve their source grain. dbt tests enforce unique primary identifiers,
+the run-to-observation relationship, required attributes, valid run statuses, and
+basic numerical and temporal expectations.
+
 ## Legacy table
 
 Databases created before the append-only model may also contain `broadcasts`. That

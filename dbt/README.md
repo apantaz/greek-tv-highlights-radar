@@ -4,8 +4,9 @@ This directory contains the repository-local dbt project for transforming ingest
 data in DuckDB. Both the project and profile are version-controlled so contributors
 do not need a user-specific `~/.dbt/profiles.yml`.
 
-The foundation currently declares the ingestion relations as dbt sources. Raw,
-intermediate, and mart models are delivered in subsequent milestones.
+The project declares the ingestion relations as dbt sources and projects them into
+two tested raw views. Intermediate and mart models are delivered in subsequent
+milestones.
 
 The development target uses `greek_tv` as its base schema. dbt combines that base
 with each model folder's custom schema:
@@ -26,8 +27,8 @@ is enabled later.
 
 Reusable dbt documentation blocks live under `docs/raw`, `docs/intermediate`, and
 `docs/marts`. Each layer separates table-level guidance in `tables.md` from
-column-level guidance in `columns.md`. Model YAML files can reference these blocks
-with `{{ doc('raw_tables') }}` and the corresponding layer-specific name.
+column-level guidance in `columns.md`. Each model and column description in
+`models/raw/schema.yml` references its corresponding block with `{{ doc('...') }}`.
 
 Enter the dbt project. dbt discovers the `profiles.yml` beside `dbt_project.yml`, so
 no `DBT_PROFILES_DIR` export or user-specific profile is needed:
@@ -68,6 +69,11 @@ DBT_DUCKDB_PATH=/absolute/path/to/database.duckdb dbt build
 Disconnect DuckDB CLI, DBeaver, or other writers before running dbt because DuckDB
 permits only one process to hold a write connection to a database file.
 
+Build the raw layer and its source-boundary tests with:
+
+```bash
+dbt build --select path:models/raw
+```
+
 The pre-push hooks use dbt-checkpoint to parse the project, compile changed SQL
-models, and generate the documentation catalog. Compilation currently has no SQL
-models to process; it becomes active when the raw-model delivery is added.
+models, and generate the documentation catalog.
