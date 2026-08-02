@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import date, datetime
+from enum import StrEnum
 from hashlib import sha256
 
 from pydantic import BaseModel, Field, computed_field, field_validator
@@ -40,4 +41,31 @@ class Broadcast(BaseModel):
         return sha256(identity.encode()).hexdigest()
 
 
-__all__ = ["Broadcast"]
+class IngestionStatus(StrEnum):
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+
+
+class IngestionRun(BaseModel):
+    run_id: str = Field(min_length=1)
+    source: str = Field(min_length=1)
+    channel: str = Field(min_length=1)
+    schedule_date: date
+    source_url: str = Field(min_length=1)
+    started_at: datetime
+    completed_at: datetime | None = None
+    status: IngestionStatus
+    records_parsed: int = Field(default=0, ge=0)
+    snapshot_path: str | None = None
+    error_message: str | None = None
+
+    @field_validator("started_at", "completed_at")
+    @classmethod
+    def require_run_timezone(cls, value: datetime | None) -> datetime | None:
+        if value is not None and value.tzinfo is None:
+            raise ValueError("datetime values must be timezone-aware")
+        return value
+
+
+__all__ = ["Broadcast", "IngestionRun", "IngestionStatus"]

@@ -6,12 +6,22 @@ explainable daily highlights.
 
 ## Current milestone
 
-The first vertical slice ingests one day of ERT1 programming from
+Version `v0.1.0` delivered the first vertical slice for one day of ERT1 programming from
 [ProgrammaTileorasis.gr](https://programmatileorasis.gr/), saves the raw HTML for
 reprocessing, validates parsed broadcasts with Pydantic, and upserts them into DuckDB.
 
+The current delivery adds reliable, auditable ingestion. Every attempt is recorded,
+raw snapshots and parsed observations are append-only, transient requests are retried,
+and a `current_broadcasts` view exposes only the latest successful schedule per
+channel and date.
+
 ```text
-ProgrammaTileorasis.gr → raw HTML snapshot → typed parser → DuckDB
+ProgrammaTileorasis.gr
+  → ingestion run
+  → immutable raw snapshot
+  → typed parser and quality checks
+  → append-only observations
+  → current schedule view
 ```
 
 The initial scope is deliberately narrow: one channel, one source adapter, and one
@@ -64,25 +74,53 @@ git push -u origin feat/my-change
 For server-side enforcement that cannot be bypassed with `--no-verify`, enable a
 GitHub branch protection rule requiring pull requests for `main`.
 
-By default, the command writes source snapshots under `data/raw/` and broadcasts to
-`data/greek_tv.duckdb`. Override these locations with `RAW_DATA_DIR` and
-`DUCKDB_PATH`.
+By default, the command writes source snapshots under `data/raw/` and records runs and
+broadcast observations in `data/greek_tv.duckdb`. Override these locations with
+`RAW_DATA_DIR` and `DUCKDB_PATH`. Reliability settings are configurable through
+`HTTP_TIMEOUT_SECONDS`, `HTTP_MAX_ATTEMPTS`, and `MINIMUM_SCHEDULE_RECORDS`.
+
+Useful DuckDB relations:
+
+```sql
+select
+    run_id,
+    channel,
+    schedule_date,
+    status,
+    records_parsed,
+    error_message
+from ingestion_runs
+order by started_at desc;
+
+select
+    channel,
+    starts_at,
+    ends_at,
+    title
+from current_broadcasts
+order by starts_at;
+```
 
 ## Engineering properties
 
 - Source-specific parsing is isolated behind a small adapter.
-- Raw observations are retained separately from normalized records.
+- Every attempted ingestion has auditable success or failure metadata.
+- Raw snapshots and parsed observations are immutable and run-addressed.
+- The current schedule is derived from the latest successful run rather than updated in place.
 - Athens-aware timestamps handle programmes that cross midnight.
-- Stable broadcast identities make repeated ingestion idempotent.
+- Existing milestone-one databases migrate non-destructively on first use.
+- Bounded retries handle transient HTTP failures without retrying permanent client errors.
+- Quality checks reject undersized, duplicate, and non-chronological schedules.
 - Parser tests use offline HTML fixtures rather than a live website.
 - CI runs Ruff and pytest on every pull request and push to `main`.
 
 ## Scope and limitations
 
-Schedule data remains attributable to its source through `source_url` and
-`retrieved_at`. The scraper currently supports ERT1 only. The upstream HTML is an
-external contract and may change; a missing schedule table fails loudly rather than
+Schedule data remains attributable to its source and ingestion run. The scraper
+currently supports ERT1 only. The upstream HTML is an external contract and may
+change; structural and quality failures are recorded and fail loudly rather than
 silently storing incomplete data.
 
-See [architecture](docs/architecture.md), [decisions](docs/decisions.md), and the
+See the [data model and ERD](docs/data-model.md),
+[architecture](docs/architecture.md), [decisions](docs/decisions.md), and the
 [roadmap](docs/roadmap.md) for design context.

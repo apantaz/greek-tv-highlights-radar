@@ -12,10 +12,14 @@
 
 ## Milestone 2 — Reliable multi-channel ingestion
 
-- Add representative commercial and public channels
-- Add retries with bounded backoff and structured run metadata
-- Detect upstream HTML changes and enforce data-quality thresholds
-- Reconcile updated schedules without losing observation history
+- [x] Add retries with bounded backoff
+- [x] Record structured ingestion-run metadata and failures
+- [x] Store immutable run-addressed raw snapshots
+- [x] Preserve append-only observations and derive the current schedule
+- [x] Enforce schedule quality thresholds
+- [x] Migrate milestone-one databases non-destructively
+- [ ] Add representative commercial and public channels
+- [ ] Add batch ingestion with isolated per-channel failures
 
 ## Milestone 3 — Enrichment and entity resolution
 
