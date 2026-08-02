@@ -9,7 +9,7 @@ from greek_tv.config import http_max_attempts, http_timeout_seconds, minimum_sch
 from greek_tv.database import IngestionRepository
 from greek_tv.ingestion.quality import validate_schedule
 from greek_tv.models import IngestionRun, IngestionStatus
-from greek_tv.scraper.channels import resolve_channel
+from greek_tv.scraper.channels import Channel, resolve_channel
 from greek_tv.scraper.client import SOURCE_NAME, ScheduleClient, save_snapshot
 from greek_tv.scraper.parser import parse_schedule
 
@@ -50,14 +50,38 @@ def ingest_schedule(
     definition = resolve_channel(client.fetch_catalog(), channel)
     if minimum_records is None:
         minimum_records = minimum_schedule_records()
+    return ingest_channel(
+        channel=definition,
+        schedule_date=schedule_date,
+        database_path=database_path,
+        raw_root=raw_root,
+        client=client,
+        minimum_records=minimum_records,
+        clock=clock,
+        run_id_factory=run_id_factory,
+    )
+
+
+def ingest_channel(
+    *,
+    channel: Channel,
+    schedule_date: date,
+    database_path: Path,
+    raw_root: Path,
+    client: ScheduleClient,
+    minimum_records: int,
+    clock: Callable[[], datetime] = _utc_now,
+    run_id_factory: Callable[[], str] = _run_id,
+) -> IngestionRun:
+    """Ingest one already-resolved channel without repeating catalog discovery."""
     repository = IngestionRepository(database_path)
     run_id = run_id_factory()
-    source_url = client.source_url(definition, schedule_date)
+    source_url = client.source_url(channel, schedule_date)
     started_at = clock()
     run = IngestionRun(
         run_id=run_id,
         source=SOURCE_NAME,
-        channel=definition.display_name,
+        channel=channel.display_name,
         schedule_date=schedule_date,
         source_url=source_url,
         started_at=started_at,
@@ -67,19 +91,19 @@ def ingest_schedule(
 
     snapshot_path: Path | None = None
     try:
-        html, response_url = client.fetch(definition, schedule_date)
+        html, response_url = client.fetch(channel, schedule_date)
         snapshot_path = save_snapshot(
             html,
             raw_root,
-            definition.slug,
+            channel.slug,
             schedule_date,
             run_id,
         )
         retrieved_at = clock()
         broadcasts = parse_schedule(
             html,
-            channel_id=definition.source_id,
-            channel=definition.display_name,
+            channel_id=channel.source_id,
+            channel=channel.display_name,
             schedule_date=schedule_date,
             source_url=response_url,
             retrieved_at=retrieved_at,

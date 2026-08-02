@@ -1,4 +1,10 @@
+from datetime import date
+
+import pytest
+
 from greek_tv import cli
+from greek_tv.ingestion.batch import BatchIngestionResult, ChannelIngestionResult
+from greek_tv.models import IngestionStatus
 from greek_tv.scraper.channels import Channel
 
 
@@ -31,3 +37,51 @@ def test_ingest_parser_accepts_dynamic_channel_slug():
     )
 
     assert args.channel == "channel-200"
+
+
+def batch_result(*, failed: bool) -> BatchIngestionResult:
+    results = [
+        ChannelIngestionResult(
+            channel=Channel("ert1", 18, "ΕΡΤ1"),
+            status=IngestionStatus.SUCCEEDED,
+            run_id="run-1",
+            records_parsed=20,
+        )
+    ]
+    if failed:
+        results.append(
+            ChannelIngestionResult(
+                channel=Channel("ert2", 87, "ΕΡΤ2"),
+                status=IngestionStatus.FAILED,
+                run_id="run-2",
+                records_parsed=0,
+                error_message="RuntimeError: unavailable",
+            )
+        )
+    return BatchIngestionResult(date(2026, 8, 2), tuple(results))
+
+
+def test_ingest_all_prints_summary_and_succeeds(monkeypatch, capsys):
+    monkeypatch.setattr(cli, "ingest_all_schedules", lambda **_kwargs: batch_result(failed=False))
+    monkeypatch.setattr("sys.argv", ["greek-tv", "ingest-all", "--date", "2026-08-02"])
+
+    cli.main()
+
+    output = capsys.readouterr().out
+    assert "date=2026-08-02 succeeded=1 failed=0" in output
+    assert "ert1" in output
+    assert "succeeded 20 records" in output
+
+
+def test_ingest_all_exits_nonzero_after_partial_failure(monkeypatch, capsys):
+    monkeypatch.setattr(cli, "ingest_all_schedules", lambda **_kwargs: batch_result(failed=True))
+    monkeypatch.setattr("sys.argv", ["greek-tv", "ingest-all", "--date", "2026-08-02"])
+
+    with pytest.raises(SystemExit) as captured:
+        cli.main()
+
+    assert captured.value.code == 1
+    output = capsys.readouterr().out
+    assert "date=2026-08-02 succeeded=1 failed=1" in output
+    assert "ert2" in output
+    assert "failed    RuntimeError: unavailable" in output

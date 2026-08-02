@@ -33,6 +33,26 @@ Catalog discovery is a precondition to creating an ingestion run because the run
 channel identity and source URL are not known beforehand. Once resolved, schedule
 fetching and parsing remain inside the audited run boundary.
 
+## Batch boundary
+
+```text
+discover catalog once
+ └─ for each channel, sequentially
+     ├─ create an independent ingestion run
+     ├─ fetch, snapshot, parse, validate, and persist
+     ├─ capture success or failure in the batch result
+     └─ continue with the next channel
+```
+
+Batch orchestration is deliberately sequential to avoid unnecessary load on the
+public source. Channel failures are returned as structured results rather than
+propagated from the loop. A catalog-discovery failure prevents the batch from
+starting because there is no trustworthy set of channels to process.
+
+There is no persisted batch entity in the current model. Each channel attempt already
+has a complete audit record in `ingestion_runs`; a separate batch table would add
+state without a demonstrated analytical or operational need.
+
 ## Data grains
 
 See the [data model](data-model.md) for the current entity-relationship diagram and

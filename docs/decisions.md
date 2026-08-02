@@ -50,3 +50,12 @@ alias mapping does not determine catalog membership. Newly added channels are ex
 through their numeric identifier and a `channel-<id>` fallback; removed channels stop
 resolving. This avoids silently freezing a changing upstream catalog in application
 code.
+
+## ADR-008
+Batch ingestion isolates channels without introducing a persisted batch entity.
+
+The catalog is discovered once and channels are processed sequentially to limit load
+on the public source. Each channel uses the existing audited ingestion-run boundary,
+and failures are captured as structured batch results so later channels continue.
+The command returns a non-zero status for any partial failure. A separate batch table
+is deferred until a concrete requirement exists for persisted batch-level metadata.
