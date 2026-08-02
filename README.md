@@ -24,9 +24,9 @@ ProgrammaTileorasis.gr
   → current schedule view
 ```
 
-The initial scope is deliberately narrow: one channel, one source adapter, and one
-command. TMDB enrichment, dbt models, recommendations, and Streamlit come after the
-ingestion boundary is reliable.
+The current source adapter discovers the free channels advertised by the upstream
+source at runtime. Batch orchestration comes next; TMDB enrichment, dbt models,
+recommendations, and Streamlit follow after the ingestion boundary is reliable.
 
 ## Quick start
 
@@ -36,6 +36,19 @@ Python 3.12 or newer is required.
 make install
 make check
 greek-tv ingest --channel ert1 --date 2026-07-19
+```
+
+List the currently available channels, then ingest one by its slug, source ID, or
+display name:
+
+```bash
+greek-tv channels
+```
+
+For example:
+
+```bash
+greek-tv ingest --channel alpha --date 2026-07-19
 ```
 
 `make install` also installs Git hooks. Before each commit, pre-commit checks file
@@ -104,6 +117,7 @@ order by starts_at;
 ## Engineering properties
 
 - Source-specific parsing is isolated behind a small adapter.
+- Typed channel discovery separates stable CLI aliases from source identifiers and names.
 - Every attempted ingestion has auditable success or failure metadata.
 - Raw snapshots and parsed observations are immutable and run-addressed.
 - The current schedule is derived from the latest successful run rather than updated in place.
@@ -117,9 +131,11 @@ order by starts_at;
 ## Scope and limitations
 
 Schedule data remains attributable to its source and ingestion run. The scraper
-currently supports ERT1 only. The upstream HTML is an external contract and may
-change; structural and quality failures are recorded and fail loudly rather than
-silently storing incomplete data.
+discovers the free-channel catalog exposed in the upstream `.channels_list` element.
+Known channels receive readable stable aliases; newly advertised channels remain
+immediately addressable by source ID or a `channel-<id>` fallback slug. The upstream
+HTML is an external contract and may change; structural and quality failures are
+recorded and fail loudly rather than silently storing incomplete data.
 
 See the [data model and ERD](docs/data-model.md),
 [architecture](docs/architecture.md), [decisions](docs/decisions.md), and the

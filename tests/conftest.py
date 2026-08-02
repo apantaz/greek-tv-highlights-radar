@@ -12,3 +12,9 @@ def schedule_html() -> str:
         / ("programmatileorasis_ert1_2026-07-19.html")
     )
     return fixture.read_text(encoding="utf-8")
+
+
+@pytest.fixture
+def channel_catalog_html() -> str:
+    fixture = Path(__file__).parent / "fixtures" / "channels" / "programmatileorasis.html"
+    return fixture.read_text(encoding="utf-8")

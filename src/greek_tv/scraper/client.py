@@ -8,9 +8,10 @@ from urllib.parse import quote
 
 import httpx
 
+from greek_tv.scraper.channels import Channel, parse_channel_catalog
+
 BASE_URL = "https://programmatileorasis.gr"
 SOURCE_NAME = "programmatileorasis"
-CHANNELS = {"ert1": (18, "ΕΡΤ1")}
 RETRYABLE_STATUS_CODES = frozenset({408, 429, 500, 502, 503, 504})
 
 
@@ -33,20 +34,7 @@ class ScheduleClient:
         self.transport = transport
         self.sleep = sleep
 
-    def source_url(self, channel: str, schedule_date: date) -> str:
-        try:
-            channel_id, channel_name = CHANNELS[channel.lower()]
-        except KeyError as error:
-            supported = ", ".join(sorted(CHANNELS))
-            raise ValueError(
-                f"unsupported channel {channel!r}; choose one of: {supported}"
-            ) from error
-        encoded_name = quote(channel_name, safe="")
-        return f"{BASE_URL}/free/{channel_id}/{encoded_name}?date={schedule_date.isoformat()}"
-
-    def fetch(self, channel: str, schedule_date: date) -> tuple[str, str]:
-        """Fetch one page, retrying only transport and explicitly transient HTTP errors."""
-        url = self.source_url(channel, schedule_date)
+    def _get(self, url: str) -> tuple[str, str]:
         headers = {"User-Agent": "greek-tv-highlights-radar/0.2 (+public research project)"}
         with httpx.Client(
             timeout=self.timeout,
@@ -72,6 +60,22 @@ class ScheduleClient:
                 response.raise_for_status()
                 return response.text, str(response.url)
         raise RuntimeError("schedule fetch exhausted without a response")
+
+    def fetch_catalog(self) -> tuple[Channel, ...]:
+        """Fetch and parse the channel catalog currently advertised by the source."""
+        html, _ = self._get(BASE_URL)
+        return parse_channel_catalog(html)
+
+    def source_url(self, channel: Channel, schedule_date: date) -> str:
+        encoded_name = quote(channel.display_name, safe="")
+        return (
+            f"{BASE_URL}/free/{channel.source_id}/{encoded_name}?date={schedule_date.isoformat()}"
+        )
+
+    def fetch(self, channel: Channel, schedule_date: date) -> tuple[str, str]:
+        """Fetch one page, retrying only transport and explicitly transient HTTP errors."""
+        url = self.source_url(channel, schedule_date)
+        return self._get(url)
 
 
 def save_snapshot(

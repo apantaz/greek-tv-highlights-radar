@@ -5,6 +5,7 @@ import pytest
 
 from greek_tv.database import IngestionRepository
 from greek_tv.models import IngestionStatus
+from greek_tv.scraper.channels import Channel
 from greek_tv.scraper.schedule import IngestionError, ingest_schedule
 
 
@@ -12,11 +13,15 @@ class FakeClient:
     def __init__(self, html: str | None = None, error: Exception | None = None) -> None:
         self.html = html
         self.error = error
+        self.channel = Channel("ert1", 18, "ΕΡΤ1")
 
-    def source_url(self, channel: str, schedule_date: date) -> str:
-        return f"https://example.test/{channel}?date={schedule_date.isoformat()}"
+    def fetch_catalog(self) -> tuple[Channel, ...]:
+        return (self.channel,)
 
-    def fetch(self, channel: str, schedule_date: date) -> tuple[str, str]:
+    def source_url(self, channel: Channel, schedule_date: date) -> str:
+        return f"https://example.test/{channel.slug}?date={schedule_date.isoformat()}"
+
+    def fetch(self, channel: Channel, schedule_date: date) -> tuple[str, str]:
         if self.error:
             raise self.error
         assert self.html is not None
