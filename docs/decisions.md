@@ -4,7 +4,7 @@
 DuckDB chosen for local analytical storage.
 
 DuckDB keeps the portfolio project runnable without infrastructure while supporting
-analytical SQL and a future dbt layer. A hosted, concurrent product would revisit
+analytical SQL and the repository-local dbt layer. A hosted, concurrent product would revisit
 this decision.
 
 ## ADR-002
@@ -59,3 +59,13 @@ on the public source. Each channel uses the existing audited ingestion-run bound
 and failures are captured as structured batch results so later channels continue.
 The command returns a non-zero status for any partial failure. A separate batch table
 is deferred until a concrete requirement exists for persisted batch-level metadata.
+
+## ADR-009
+dbt configuration is repository-local and ingestion relations are read-only sources.
+
+The dbt project and DuckDB profile live under `dbt/`, making setup reproducible
+without user-specific configuration. The database path remains environment-
+overridable for local development and CI. Python retains ownership of immutable
+ingestion tables, while dbt is limited to derived analytical relations. This keeps
+the write boundary explicit and prevents transformations from altering source
+history.

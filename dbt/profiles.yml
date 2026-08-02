@@ -1,0 +1,8 @@
+greek_tv:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', '../data/greek_tv.duckdb') }}"
+      schema: greek_tv
+      threads: 1

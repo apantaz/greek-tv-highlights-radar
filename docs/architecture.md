@@ -26,7 +26,7 @@ assigned to the next calendar day in the `Europe/Athens` timezone.
 A typed discovery adapter parses source identifiers and display names from the
 source's `.channels_list` element. Known source identifiers receive stable readable
 aliases, while a newly advertised identifier receives a `channel-<id>` fallback.
-Every single-channel or future batch invocation therefore uses the catalog currently
+Every single-channel and batch invocation therefore uses the catalog currently
 advertised by the source instead of assuming static membership.
 
 Catalog discovery is a precondition to creating an ingestion run because the run's
@@ -52,6 +52,24 @@ starting because there is no trustworthy set of channels to process.
 There is no persisted batch entity in the current model. Each channel attempt already
 has a complete audit record in `ingestion_runs`; a separate batch table would add
 state without a demonstrated analytical or operational need.
+
+## Transformation boundary
+
+The repository-local dbt project connects to the ingestion DuckDB file and declares
+`ingestion_runs` and `broadcast_observations` as sources in the `main` schema. Python
+owns ingestion and immutable source data; dbt owns derived analytical schemas and
+must not mutate ingestion relations.
+
+The dbt development target uses `greek_tv` as a namespace. Folder-level schema
+configuration writes raw models to `greek_tv_raw`, intermediate models to
+`greek_tv_intermediate`, and marts to `greek_tv_marts`. Model descriptions are
+persisted on relations and columns so the warehouse remains self-documenting.
+Seeds share the `greek_tv_raw` schema, timestamp-strategy snapshots target
+`snapshots`, and data-test failures are not persisted by default.
+
+The initial foundation contains source metadata and project validation only. Staging,
+intermediate, dimensional, and mart models are added as separately reviewable
+deliveries.
 
 ## Data grains
 

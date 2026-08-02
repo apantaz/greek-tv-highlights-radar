@@ -6,14 +6,15 @@ explainable daily highlights.
 
 ## Current milestone
 
-Version `v0.1.0` delivered the first vertical slice for one day of ERT1 programming from
-[ProgrammaTileorasis.gr](https://programmatileorasis.gr/), saves the raw HTML for
-reprocessing, validates parsed broadcasts with Pydantic, and upserts them into DuckDB.
+Version `v0.3.0` completed reliable multi-channel ingestion from
+[ProgrammaTileorasis.gr](https://programmatileorasis.gr/). The source catalog is
+discovered at runtime, each channel receives an isolated ingestion run, and partial
+batch failures remain visible without preventing other channels from completing.
 
-The current delivery adds reliable, auditable ingestion. Every attempt is recorded,
-raw snapshots and parsed observations are append-only, transient requests are retried,
-and a `current_broadcasts` view exposes only the latest successful schedule per
-channel and date.
+The current delivery starts the `v0.4.0` analytics warehouse. It adds a
+repository-local dbt project, declares the immutable ingestion relations as dbt
+sources, and validates the project through CI and pre-push quality gates. Staging and
+analytical models are the next separately reviewable delivery.
 
 ```text
 ProgrammaTileorasis.gr
@@ -22,12 +23,13 @@ ProgrammaTileorasis.gr
   → typed parser and quality checks
   → append-only observations
   → current schedule view
+  → documented dbt source boundary
 ```
 
 The current source adapter discovers the free channels advertised by the upstream
 source at runtime and can ingest the complete catalog with isolated per-channel
-failures. TMDB enrichment, dbt models, recommendations, and Streamlit follow now that
-the ingestion boundary is reliable.
+failures. dbt transformations, TMDB enrichment, recommendations, and Streamlit follow
+now that the ingestion boundary is reliable.
 
 ## Quick start
 
@@ -63,10 +65,33 @@ failed channel does not stop the remaining schedules, and the command prints a f
 success/failure summary. It exits with status `1` if any channel failed, making
 partial failures visible to schedulers and CI.
 
+## dbt warehouse
+
+The repository includes a local dbt project configured for the same DuckDB database.
+The ingestion tables are declared as documented dbt sources, establishing the
+read-only boundary between Python ingestion and SQL transformation.
+
+Run dbt directly from its project directory:
+
+```bash
+cd dbt
+dbt deps
+dbt debug
+dbt parse
+dbt compile
+dbt docs generate
+```
+
+dbt automatically uses the `profiles.yml` beside `dbt_project.yml`, so no global
+profile or environment setup is required. Set `DBT_DUCKDB_PATH` to transform a
+different database file. Close DBeaver and the DuckDB CLI before commands that write
+models to avoid file-lock conflicts. See the [dbt project guide](dbt/README.md).
+
 `make install` also installs Git hooks. Before each commit, pre-commit checks file
 hygiene, malformed configuration, merge markers, private keys, Python lint, and
-formatting. Commitizen validates commit messages against Conventional Commits, and
-before each push the full test suite runs.
+formatting. Commitizen validates commit messages against Conventional Commits. Before
+each push, dbt-checkpoint validates parsing, compilation, and documentation generation,
+then the full Python test suite runs.
 
 Run the same gates manually:
 
@@ -139,7 +164,12 @@ order by starts_at;
 - Bounded retries handle transient HTTP failures without retrying permanent client errors.
 - Quality checks reject undersized, duplicate, and non-chronological schedules.
 - Parser tests use offline HTML fixtures rather than a live website.
-- CI runs Ruff and pytest on every pull request and push to `main`.
+- Repository-local dbt configuration documents a read-only source boundary and needs
+  no user-specific profile.
+- dbt-checkpoint validates parsing, compilation, and documentation generation before
+  pushes.
+- CI runs Ruff, pytest, and dbt foundation validation on every pull request and push
+  to `main`.
 
 ## Scope and limitations
 

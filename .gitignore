@@ -25,6 +25,12 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
+dbt/logs/
+dbt/target/
+dbt/dbt_packages/
+dbt/.user.yml
+dbt/package-lock.yml
+.dbt-checkpoint.yaml
 build/
 dist/
 

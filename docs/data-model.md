@@ -59,6 +59,14 @@ flowchart LR
 The view deliberately excludes failed attempts and older successful observations,
 while the underlying tables retain the complete ingestion history.
 
+## dbt source boundary
+
+The repository-local dbt project declares `ingestion_runs` and
+`broadcast_observations` as documented sources in DuckDB's `main` schema. No derived
+dbt models exist in this foundation delivery, so the physical ERD above remains
+unchanged. Staging and analytical relations will be added without mutating these
+ingestion-owned tables.
+
 ## Legacy table
 
 Databases created before the append-only model may also contain `broadcasts`. That

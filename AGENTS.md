@@ -6,14 +6,16 @@
 
 Greek TV Highlights Radar & Archive is a local-first Analytics Engineering project that builds a historical warehouse of Greek television programming.
 
-The platform automatically:
+The implemented platform currently:
 
 1. Scrapes Greek TV schedules from public sources.
-2. Detects movies and TV programs.
-3. Enriches movie metadata using TMDB.
-4. Stores raw and transformed data in DuckDB.
-5. Preserves historical snapshots for future analysis.
-6. Serves analytics and recommendations through Streamlit.
+2. Discovers available channels dynamically.
+3. Stores immutable raw snapshots and observations in DuckDB.
+4. Preserves ingestion history for future analysis.
+5. Declares the ingestion boundary as documented dbt sources.
+
+The roadmap adds dbt transformations, TMDB enrichment, and a Streamlit analytics
+application incrementally.
 
 The project is intentionally designed as a production-quality portfolio that demonstrates modern Analytics Engineering and Data Engineering practices.
 
@@ -42,16 +44,17 @@ Current stack:
 - BeautifulSoup
 - DuckDB
 - dbt-duckdb
-- Streamlit
+- pytest and pytest-cov
+- Ruff
+- pre-commit and Commitizen
+- dbt-checkpoint
+- GitHub Actions
 
 Planned additions:
 
-- GitHub Actions
-- pytest
-- Ruff
 - SQLFluff
-- pre-commit
-- Coverage reporting
+- TMDB enrichment
+- Streamlit
 
 ---
 
@@ -95,8 +98,6 @@ Preferred layers:
 
 ```
 raw
-    ↓
-staging
     ↓
 intermediate
     ↓
@@ -163,17 +164,15 @@ README files should remain beginner-friendly.
 
 ---
 
-# Suggested Repository Structure
+# Repository Structure
 
 ```
-scrapers/
-api/
+src/greek_tv/
 dbt/
-streamlit/
-models/
 data/
 tests/
 docs/
+.github/workflows/
 ```
 
 Each folder should contain a single responsibility.

@@ -1,0 +1,43 @@
+name: greek_tv
+version: 1.0.0
+config-version: 2
+
+profile: greek_tv
+
+model-paths: ["models"]
+docs-paths: ["docs"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - target
+  - dbt_packages
+  - logs
+
+models:
+  +persist_docs:
+    relation: true
+    columns: true
+
+  greek_tv:
+    raw:
+      +schema: raw
+    intermediate:
+      +schema: intermediate
+    marts:
+      +schema: marts
+
+seeds:
+  +schema: raw
+
+snapshots:
+  greek_tv:
+    +target_schema: snapshots
+    +strategy: timestamp
+
+data_tests:
+  +store_failures: false
+  +schema: test_failures
