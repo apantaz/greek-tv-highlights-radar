@@ -18,3 +18,25 @@ The first release supports one source and one channel.
 
 A narrow end-to-end slice demonstrates reliability and exposes real data problems
 before abstractions for multiple sources are introduced.
+
+## ADR-004
+Ingestion history is append-only and current state is a derived view.
+
+Schedules may change between collection attempts. Storing observations by run keeps
+those changes auditable, while `current_broadcasts` provides a convenient consumer
+interface based on the latest successful run. Failed runs cannot replace a valid
+current schedule.
+
+## ADR-005
+The milestone-one table is migrated without destructive schema changes.
+
+Existing `broadcasts` records are copied into deterministic legacy ingestion runs and
+observations. The original table remains intact. This favors recoverability and makes
+the migration safe to execute repeatedly.
+
+## ADR-006
+Retries are bounded and limited to transient failures.
+
+Transport failures and selected temporary HTTP statuses use exponential backoff.
+Permanent client errors fail immediately, avoiding unnecessary load on the source and
+making configuration or URL problems visible.
