@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["commitizen", "pre-commit", "pytest", "ruff"]
+dev = ["commitizen", "pre-commit", "pytest", "pytest-cov", "ruff"]
 
 [project.scripts]
 greek-tv = "greek_tv.cli:main"
@@ -28,6 +28,13 @@ packages = ["src/greek_tv"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["greek_tv"]
+
+[tool.coverage.report]
+show_missing = true
 
 [tool.ruff]
 line-length = 100

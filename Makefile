@@ -5,6 +5,9 @@ install:
 test:
 	pytest
 
+coverage:
+	pytest --cov=greek_tv --cov-report=term-missing
+
 lint:
 	ruff check .
 	ruff format --check .
