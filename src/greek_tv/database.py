@@ -73,6 +73,7 @@ class IngestionRepository:
                     where status = 'succeeded'
                 )
                 select
+                    observations.observation_id,
                     observations.broadcast_id,
                     observations.channel,
                     observations.title,

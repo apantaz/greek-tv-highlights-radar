@@ -8,6 +8,15 @@ ingestion.
 
 {% enddocs %}
 
+{% docs raw_broadcast_enrichment_lookups %}
+
+# Raw broadcast enrichment lookups
+
+Direct append-only lineage from exact schedule observations to the source-evidence
+lookups used for enrichment. This bridge prevents inference from programme title text.
+
+{% enddocs %}
+
 {% docs raw_tmdb_searches %}
 
 # Raw TMDB searches

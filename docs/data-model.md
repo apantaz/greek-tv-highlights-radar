@@ -61,10 +61,10 @@ while the underlying tables retain the complete ingestion history.
 
 ## dbt source boundary
 
-The repository-local dbt project declares the two ingestion relations and seven
+The repository-local dbt project declares the two ingestion relations and eight
 enrichment relations as documented sources in DuckDB's `main` schema. Derived models
-never mutate these Python-owned tables. The current dbt raw graph projects all nine
-sources; downstream enrichment models are planned for the remainder of Milestone 5.
+never mutate these Python-owned tables. The current dbt raw graph projects all ten
+sources, including the direct broadcast-to-lookup lineage bridge.
 
 The first derived layer adds two views without changing the source relationships:
 
@@ -89,6 +89,8 @@ erDiagram
     tmdb_resolutions ||--o{ tmdb_candidate_scores : contains
     tmdb_resolutions }o--o{ tmdb_entity_details : accepted_identity
     tmdb_entity_details ||--|| tmdb_entity_metric_observations : records
+    broadcast_observations ||--o{ broadcast_enrichment_lookups : links
+    tmdb_lookup_contexts ||--o{ broadcast_enrichment_lookups : reused_by
 
     tmdb_searches {
         varchar search_id PK
@@ -183,6 +185,14 @@ erDiagram
         integer vote_count
         timestamptz observed_at
     }
+
+    broadcast_enrichment_lookups {
+        varchar observation_id PK, FK
+        varchar lookup_id PK, FK
+        varchar language
+        varchar scoring_version PK
+        timestamptz linked_at
+    }
 ```
 
 One `tmdb_searches` row preserves one complete external response. Its zero or more
@@ -190,7 +200,7 @@ One `tmdb_searches` row preserves one complete external response. Its zero or mo
 preserves API response order without claiming that any candidate is the correct
 programme match. `tmdb_lookup_contexts` separately preserves the source title,
 production year, query variants, and selected search so reusable API cache entries do
-not lose observation-specific evidence. dbt declares all seven relations as read-only
+not lose observation-specific evidence. dbt declares all eight relations as read-only
 enrichment sources. Each lookup can have append-only versioned resolution runs;
 component scores preserve how every candidate received its final rank.
 
@@ -233,12 +243,17 @@ flowchart LR
     latest_details --> resolved
     raw_metrics[raw_tmdb_entity_metric_observations] --> latest_metrics[int_latest_tmdb_entity_metrics]
     latest_metrics --> resolved
+    current[int_current_broadcasts] --> broadcast_enrichment[int_current_broadcast_enrichment]
+    raw_links[raw_broadcast_enrichment_lookups] --> broadcast_enrichment
+    resolved --> broadcast_enrichment
 ```
 
 The three latest-state models use timestamps plus stable identifiers for deterministic
 tie-breaking. `int_resolved_programmes` has one row per lookup context and retains
 pending and unresolved outcomes with null entity metadata. No title-based join to
-broadcast observations is performed because that would not provide reliable lineage.
+broadcast observations is performed. `int_current_broadcast_enrichment` instead uses
+the persisted observation-to-lookup bridge, retains every current observation, and
+adds resolved identity and latest metadata identifiers only when they exist.
 
 ## Mart lineage
 

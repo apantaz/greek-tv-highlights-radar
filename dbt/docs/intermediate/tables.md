@@ -8,6 +8,15 @@ so downstream schedules never depend on database row order.
 
 {% enddocs %}
 
+{% docs int_current_broadcast_enrichment %}
+
+# Current broadcast enrichment
+
+One row per current broadcast observation with its latest direct enrichment link and
+current resolution identifiers. Unlinked and unresolved broadcasts remain present.
+
+{% enddocs %}
+
 {% docs int_latest_tmdb_resolutions %}
 
 # Latest TMDB resolutions

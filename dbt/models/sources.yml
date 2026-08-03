@@ -241,3 +241,17 @@ sources:
             description: TMDB vote count at observation time.
           - name: observed_at
             description: UTC timestamp at which the metrics were retrieved.
+
+      - name: broadcast_enrichment_lookups
+        description: Direct, append-only lineage from schedule observations to enrichment lookups.
+        columns:
+          - name: observation_id
+            description: Exact schedule observation associated with the lookup.
+          - name: lookup_id
+            description: Source-evidence lookup used to enrich the observation.
+          - name: language
+            description: TMDB response language used for enrichment.
+          - name: scoring_version
+            description: Resolution policy version associated with the link.
+          - name: linked_at
+            description: UTC timestamp at which lineage was persisted.

@@ -52,7 +52,7 @@ and current-state intermediate boundaries.
 
 ## Milestone 6 — Enrichment marts
 
-- [ ] Persist direct broadcast-to-lookup lineage without title-based inference
+- [x] Persist direct broadcast-to-lookup lineage without title-based inference
 - [ ] Build a canonical programme dimension
 - [ ] Add nullable programme identity to the current-broadcast fact
 - [ ] Publish historical TMDB metric observations as a fact

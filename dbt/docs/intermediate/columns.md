@@ -133,3 +133,5 @@ UTC timestamp at which the selected ingestion run completed successfully.
 {% docs int_tmdb_search_id %}Cached TMDB search selected for this lookup.{% enddocs %}
 {% docs int_tmdb_search_query %}Human-readable query sent for the selected TMDB search.{% enddocs %}
 {% docs int_tmdb_lookup_created_at %}UTC timestamp at which source evidence was recorded.{% enddocs %}
+{% docs int_enrichment_observation_id %}Current schedule observation at the model grain.{% enddocs %}
+{% docs int_enrichment_linked_at %}UTC timestamp of the selected direct enrichment link.{% enddocs %}

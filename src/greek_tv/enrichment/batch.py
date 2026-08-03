@@ -8,7 +8,9 @@ from pathlib import Path
 
 import duckdb
 
+from greek_tv.database import IngestionRepository
 from greek_tv.enrichment.evidence import extract_title_evidence
+from greek_tv.enrichment.lineage import BroadcastEnrichmentLineageRepository
 from greek_tv.enrichment.repository import TmdbCandidateRepository
 from greek_tv.enrichment.resolution import ResolutionStatus
 from greek_tv.enrichment.service import SearchSource, enrich_title
@@ -70,30 +72,25 @@ def enrich_current_programmes(
     """Enrich distinct current programme evidence with isolated per-title failures."""
     if limit is not None and limit < 1:
         raise ValueError("batch enrichment limit must be at least 1")
+    IngestionRepository(database_path).initialize()
     repository = TmdbCandidateRepository(database_path)
     repository.initialize()
     rows = _current_programmes(database_path, channel=channel, schedule_date=schedule_date)
+    groups = _evidence_groups(rows, language)
     if limit is not None:
-        rows = rows[:limit]
+        groups = groups[:limit]
     results = []
-    seen_evidence = set()
-    for source_title, description in rows:
+    lineage = BroadcastEnrichmentLineageRepository(database_path)
+    for evidence, description, observation_ids in groups:
+        source_title = evidence.source_title
         try:
-            evidence = extract_title_evidence(source_title, description)
-            evidence_key = (
-                evidence.source_title,
-                evidence.production_year,
-                evidence.query_titles,
-                language,
-            )
-            if evidence_key in seen_evidence or repository.has_resolved_evidence(
-                evidence, language
-            ):
+            lookup_id = repository.resolved_lookup_id(evidence, language)
+            if lookup_id is not None:
+                lineage.link(observation_ids, lookup_id, language)
                 results.append(
                     ProgrammeEnrichmentResult(source_title, BatchEnrichmentStatus.SKIPPED)
                 )
                 continue
-            seen_evidence.add(evidence_key)
             outcome = enrich_title(
                 repository,
                 source_title,
@@ -101,6 +98,7 @@ def enrich_current_programmes(
                 language=language,
                 client_factory=client_factory,
             )
+            lineage.link(observation_ids, outcome.lookup.lookup_id, language)
             status = (
                 BatchEnrichmentStatus.MATCHED
                 if outcome.resolution.resolution.status is ResolutionStatus.MATCHED
@@ -123,7 +121,7 @@ def _current_programmes(
     *,
     channel: str | None,
     schedule_date: date | None,
-) -> list[tuple[str, str | None]]:
+) -> list[tuple[str, str, str | None]]:
     predicates = []
     parameters = []
     if channel:
@@ -136,11 +134,33 @@ def _current_programmes(
     with duckdb.connect(str(database_path), read_only=True) as connection:
         return connection.execute(
             f"""
-            select distinct broadcasts.title, broadcasts.description
+            select
+                broadcasts.observation_id,
+                broadcasts.title,
+                broadcasts.description
             from current_broadcasts as broadcasts
             inner join ingestion_runs as runs using (run_id)
             {where_clause}
-            order by title, description
+            order by title, description, observation_id
             """,
             parameters,
         ).fetchall()
+
+
+def _evidence_groups(rows, language):
+    groups = {}
+    for observation_id, source_title, description in rows:
+        evidence = extract_title_evidence(source_title, description)
+        key = (
+            evidence.source_title,
+            evidence.production_year,
+            evidence.query_titles,
+            language,
+        )
+        if key not in groups:
+            groups[key] = [evidence, description, []]
+        groups[key][2].append(observation_id)
+    return [
+        (evidence, description, tuple(observation_ids))
+        for evidence, description, observation_ids in groups.values()
+    ]

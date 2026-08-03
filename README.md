@@ -16,12 +16,11 @@ latest successful schedules into documented business-facing tables.
 
 The warehouse includes tested ingestion and enrichment raw views, schedule
 intermediate views, a channel dimension, a current-broadcast fact, and a daily
-schedule mart. The complete dbt graph contains 18 models protected by 242 data tests.
+schedule mart. The complete dbt graph contains 20 models protected by 254 data tests.
 
-Current development derives latest resolution, localized entity-detail, and mutable
-metric state through four enrichment intermediate models. The next delivery adds
-explicit broadcast-to-lookup lineage before publishing enrichment marts. The Python
-suite contains 100 tests.
+Current development persists direct lineage from exact broadcast observations to
+their enrichment lookups and exposes one current enrichment row per broadcast. The
+next delivery publishes enrichment marts. The Python suite contains 100 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -134,6 +133,9 @@ run therefore performs no TMDB requests for unchanged processed evidence. The co
 exits with status `1` only when operational failures occur; unresolved identities are
 valid data outcomes. Channel matching is case-insensitive, and the date refers to the
 requested ingestion schedule date rather than timestamps after midnight rollover.
+Both newly processed and previously cached evidence are linked idempotently to every
+exact broadcast observation represented by the evidence group; title text is never
+used later to infer analytical lineage.
 
 Retrieve complete metadata for every confidently matched identity:
 
@@ -365,10 +367,10 @@ order by media_type, tmdb_id, observed_at;
   no user-specific profile.
 - dbt-checkpoint validates parsing, compilation, and documentation generation before
   pushes.
-- The raw warehouse layer has explicit columns, persisted documentation, and 110 data
+- The raw warehouse layer has explicit columns, persisted documentation, and 118 data
   tests covering ingestion and enrichment source contracts.
 - The intermediate layer derives schedule and enrichment current state
-  deterministically and adds 80 tests for grain, lineage, required attributes, and
+  deterministically and adds 84 tests for grain, lineage, required attributes, and
   temporal validity.
 - The mart layer exposes Athens-local schedule analytics through a channel dimension,
   programme fact, and daily summary protected by 52 additional tests.
@@ -377,6 +379,7 @@ order by media_type, tmdb_id, observed_at;
 - Versioned candidate scores make every matched or unresolved identity explainable.
 - Batch enrichment is cache-aware, evidence-idempotent, filterable, and isolates
   programme-level failures.
+- Direct observation-to-lookup lineage prevents ambiguous title-based warehouse joins.
 - Full entity metadata is retrieved only for accepted matches and cached by stable
   TMDB identity and response language.
 - Mutable TMDB popularity and voting metrics are preserved as bounded, append-only

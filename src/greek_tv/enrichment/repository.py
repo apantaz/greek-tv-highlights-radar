@@ -292,21 +292,21 @@ class TmdbCandidateRepository:
             )
         return context
 
-    def has_resolved_evidence(
+    def resolved_lookup_id(
         self,
         evidence: TitleEvidence,
         language: str,
         *,
         scoring_version: str = "v1",
-    ) -> bool:
-        """Return whether equivalent evidence already has this scoring version."""
+    ) -> str | None:
+        """Return the latest lookup for equivalent evidence and scoring version."""
         self.initialize()
         normalized_source_title = normalize_title(evidence.source_title).normalized_title
         query_titles_json = json.dumps(evidence.query_titles, ensure_ascii=False)
         with duckdb.connect(str(self.path), read_only=True) as connection:
             row = connection.execute(
                 """
-                select 1
+                select contexts.lookup_id
                 from tmdb_lookup_contexts as contexts
                 inner join tmdb_searches as searches using (search_id)
                 inner join tmdb_resolutions as resolutions using (lookup_id)
@@ -315,6 +315,7 @@ class TmdbCandidateRepository:
                   and cast(contexts.query_titles_json as varchar) = ?
                   and searches.language = ?
                   and resolutions.scoring_version = ?
+                order by resolutions.resolved_at desc, resolutions.resolution_id desc
                 limit 1
                 """,
                 [
@@ -325,7 +326,19 @@ class TmdbCandidateRepository:
                     scoring_version,
                 ],
             ).fetchone()
-        return row is not None
+        return row[0] if row else None
+
+    def has_resolved_evidence(
+        self,
+        evidence: TitleEvidence,
+        language: str,
+        *,
+        scoring_version: str = "v1",
+    ) -> bool:
+        """Return whether equivalent evidence already has this scoring version."""
+        return (
+            self.resolved_lookup_id(evidence, language, scoring_version=scoring_version) is not None
+        )
 
     def resolve_lookup(
         self,

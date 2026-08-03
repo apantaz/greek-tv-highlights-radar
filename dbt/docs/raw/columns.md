@@ -133,3 +133,5 @@ UTC timestamp at which the source response was retrieved.
 {% docs raw_tmdb_spoken_languages_json %}Ordered ISO spoken-language codes serialized as JSON.{% enddocs %}
 {% docs raw_tmdb_metric_observation_id %}Unique identifier for one point-in-time metric observation.{% enddocs %}
 {% docs raw_tmdb_observed_at %}UTC timestamp at which mutable metrics were observed.{% enddocs %}
+{% docs raw_enrichment_observation_id %}Exact schedule observation linked to enrichment evidence.{% enddocs %}
+{% docs raw_enrichment_linked_at %}UTC timestamp at which direct enrichment lineage was persisted.{% enddocs %}

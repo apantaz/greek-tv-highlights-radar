@@ -9,8 +9,8 @@ The project requires dbt Core `>=1.12.0,<1.13.0`. This constraint is declared th
 The separate `version` property is dbt project metadata and does not select the dbt
 Core runtime.
 
-The project declares two ingestion relations and seven enrichment relations as dbt
-sources. The current graph projects all nine sources into tested raw views, derives
+The project declares two ingestion relations and eight enrichment relations as dbt
+sources. The current graph projects all ten sources into tested raw views, derives
 latest schedule and enrichment state through intermediate views, and publishes a
 channel dimension, current-broadcast fact, and daily schedule mart. Enrichment marts
 are the next warehouse delivery.
@@ -86,7 +86,7 @@ dbt build --select path:models/raw
 Build only enrichment-tagged raw models and their tests with:
 
 ```bash
-dbt build --select tag:enrichment
+dbt build --select +tag:enrichment
 ```
 
 Build the intermediate layer together with its upstream raw dependencies:
