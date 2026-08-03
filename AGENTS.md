@@ -43,7 +43,8 @@ Current stack:
 - httpx
 - BeautifulSoup
 - DuckDB
-- dbt-duckdb
+- dbt Core 1.12
+- dbt-duckdb 1.10
 - pytest and pytest-cov
 - Ruff
 - pre-commit and Commitizen

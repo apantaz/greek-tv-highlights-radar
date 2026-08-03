@@ -14,7 +14,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["commitizen", "dbt-duckdb>=1.10,<1.11", "pre-commit", "pytest", "pytest-cov", "ruff"]
+dev = [
+  "commitizen",
+  "dbt-core>=1.12,<1.13",
+  "dbt-duckdb>=1.10,<1.11",
+  "pre-commit",
+  "pytest",
+  "pytest-cov",
+  "ruff"
+]
 
 [project.scripts]
 greek-tv = "greek_tv.cli:main"

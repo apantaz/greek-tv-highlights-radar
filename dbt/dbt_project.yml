@@ -1,43 +1,78 @@
+# Project identifier used by dbt namespaces, refs, and resource configuration paths.
 name: greek_tv
+
+# dbt project metadata version; this is independent of the repository release version.
 version: 1.0.0
+
+# Selects the current dbt project-file specification.
 config-version: 2
 
+# Reject unsupported dbt Core versions before parsing or executing the project.
+require-dbt-version:
+  - ">=1.12.0" # Require the dbt Core feature set validated by this repository.
+  - "<1.13.0" # Keep upgrades to a new minor line explicit and reviewable.
+
+# Resolves connection settings from the matching key in profiles.yml.
 profile: greek_tv
 
-model-paths: ["models"]
-docs-paths: ["docs"]
-analysis-paths: ["analyses"]
-test-paths: ["tests"]
-seed-paths: ["seeds"]
-macro-paths: ["macros"]
-snapshot-paths: ["snapshots"]
+# Define where dbt discovers each supported project resource type.
+model-paths: ["models"] # SQL and Python models transformed by dbt.
+docs-paths: ["docs"] # Reusable Markdown `{% docs %}` blocks.
+analysis-paths: ["analyses"] # Ad hoc analytical SQL that dbt compiles but does not run.
+test-paths: ["tests"] # Singular data-test SQL files.
+seed-paths: ["seeds"] # Version-controlled CSV files loaded with `dbt seed`.
+macro-paths: ["macros"] # Reusable Jinja macros and custom materializations.
+snapshot-paths: ["snapshots"] # Snapshot definitions for tracking row changes over time.
 
+# Directories removed by `dbt clean`; all are reproducible generated artifacts.
 clean-targets:
-  - target
-  - dbt_packages
-  - logs
+  - target # Compiled SQL, manifests, catalogs, and run artifacts.
+  - dbt_packages # Packages downloaded by `dbt deps`.
+  - logs # Local dbt execution logs.
 
+# Apply shared defaults and folder-specific schemas to dbt models.
 models:
+  # Persist model and column descriptions as comments in DuckDB where supported.
   +persist_docs:
-    relation: true
-    columns: true
+    relation: true # Persist each model description on its relation.
+    columns: true # Persist each documented column description.
 
+  # Scope the following resource settings to models owned by this project.
   greek_tv:
+    # Raw models form the tested projection of ingestion-owned source relations.
     raw:
+      # Combines with the target schema to produce `greek_tv_raw`.
       +schema: raw
+
+    # Intermediate models contain reusable transformation and current-state logic.
     intermediate:
+      # Combines with the target schema to produce `greek_tv_intermediate`.
       +schema: intermediate
+
+    # Mart models expose stable, business-facing analytical interfaces.
     marts:
+      # Combines with the target schema to produce `greek_tv_marts`.
       +schema: marts
 
+# Place loaded seed files alongside other raw analytical inputs.
 seeds:
+  # Combines with the target schema to produce `greek_tv_raw`.
   +schema: raw
 
+# Configure defaults for slowly changing historical snapshots.
 snapshots:
+  # Scope snapshot defaults to resources owned by this project.
   greek_tv:
+    # Write snapshots to the dedicated `snapshots` schema.
     +target_schema: snapshots
+
+    # Detect changes using a source update timestamp declared by each snapshot.
     +strategy: timestamp
 
+# Configure project-wide behavior for dbt data tests.
 data_tests:
+  # Return failures during execution without persisting failure relations.
   +store_failures: false
+
+  # Reserve a schema for failure tables if persistence is enabled later.
   +schema: test_failures
