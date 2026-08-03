@@ -1,6 +1,90 @@
 version: 2
 
 models:
+  - name: dim_programmes
+    description: "{{ doc('dim_programmes') }}"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [media_type, tmdb_id]
+    columns:
+      - name: programme_key
+        description: "{{ doc('dim_programmes_programme_key') }}"
+        data_tests: [not_null, unique]
+      - name: entity_detail_id
+        description: "{{ doc('dim_programmes_entity_detail_id') }}"
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int_latest_tmdb_entity_details')
+                field: entity_detail_id
+      - name: tmdb_id
+        description: "{{ doc('dim_programmes_tmdb_id') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 1
+      - name: media_type
+        description: "{{ doc('dim_programmes_media_type') }}"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments: {values: [movie, tv]}
+      - name: metadata_language
+        description: "{{ doc('dim_programmes_metadata_language') }}"
+        data_tests: [not_null]
+      - name: title
+        description: "{{ doc('dim_programmes_title') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: original_title
+        description: "{{ doc('dim_programmes_original_title') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: original_language
+        description: "{{ doc('dim_programmes_original_language') }}"
+      - name: release_date
+        description: "{{ doc('dim_programmes_release_date') }}"
+      - name: release_year
+        description: "{{ doc('dim_programmes_release_year') }}"
+      - name: overview
+        description: "{{ doc('dim_programmes_overview') }}"
+      - name: tagline
+        description: "{{ doc('dim_programmes_tagline') }}"
+      - name: runtime_minutes
+        description: "{{ doc('dim_programmes_runtime_minutes') }}"
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                row_condition: runtime_minutes is not null
+      - name: status
+        description: "{{ doc('dim_programmes_status') }}"
+      - name: homepage
+        description: "{{ doc('dim_programmes_homepage') }}"
+      - name: imdb_id
+        description: "{{ doc('dim_programmes_imdb_id') }}"
+      - name: genres_json
+        description: "{{ doc('dim_programmes_genres_json') }}"
+        data_tests: [not_null]
+      - name: production_countries_json
+        description: "{{ doc('dim_programmes_production_countries_json') }}"
+        data_tests: [not_null]
+      - name: production_companies_json
+        description: "{{ doc('dim_programmes_production_companies_json') }}"
+        data_tests: [not_null]
+      - name: spoken_languages_json
+        description: "{{ doc('dim_programmes_spoken_languages_json') }}"
+        data_tests: [not_null]
+      - name: metadata_retrieved_at
+        description: "{{ doc('dim_programmes_metadata_retrieved_at') }}"
+        data_tests: [not_null]
+
   - name: dim_channels
     description: "{{ doc('dim_channels') }}"
     data_tests:

@@ -53,7 +53,7 @@ and current-state intermediate boundaries.
 ## Milestone 6 — Enrichment marts
 
 - [x] Persist direct broadcast-to-lookup lineage without title-based inference
-- [ ] Build a canonical programme dimension
+- [x] Build a canonical programme dimension
 - [ ] Add nullable programme identity to the current-broadcast fact
 - [ ] Publish historical TMDB metric observations as a fact
 - [ ] Build enrichment-coverage marts by channel and schedule date

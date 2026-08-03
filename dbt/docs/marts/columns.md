@@ -1,3 +1,87 @@
+{% docs dim_programmes_programme_key %}
+Deterministic surrogate key generated from media type and TMDB ID.
+{% enddocs %}
+
+{% docs dim_programmes_entity_detail_id %}
+Selected latest entity-detail response backing the dimension row.
+{% enddocs %}
+
+{% docs dim_programmes_tmdb_id %}
+Stable TMDB identifier interpreted within the programme media type.
+{% enddocs %}
+
+{% docs dim_programmes_media_type %}
+TMDB entity namespace: movie or television series.
+{% enddocs %}
+
+{% docs dim_programmes_metadata_language %}
+Response language of the selected descriptive metadata, preferring `el-GR`.
+{% enddocs %}
+
+{% docs dim_programmes_title %}
+Localized programme title from the selected TMDB detail response.
+{% enddocs %}
+
+{% docs dim_programmes_original_title %}
+Original title supplied by TMDB.
+{% enddocs %}
+
+{% docs dim_programmes_original_language %}
+Original production language code supplied by TMDB.
+{% enddocs %}
+
+{% docs dim_programmes_release_date %}
+Movie release date or television first-air date.
+{% enddocs %}
+
+{% docs dim_programmes_release_year %}
+Calendar year derived from the release or first-air date.
+{% enddocs %}
+
+{% docs dim_programmes_overview %}
+Localized TMDB synopsis, when available.
+{% enddocs %}
+
+{% docs dim_programmes_tagline %}
+Localized TMDB tagline, when available.
+{% enddocs %}
+
+{% docs dim_programmes_runtime_minutes %}
+Movie runtime or representative episode runtime in minutes, when available.
+{% enddocs %}
+
+{% docs dim_programmes_status %}
+Current production or release status reported by TMDB.
+{% enddocs %}
+
+{% docs dim_programmes_homepage %}
+Official homepage URL reported by TMDB, when available.
+{% enddocs %}
+
+{% docs dim_programmes_imdb_id %}
+IMDb identifier reported by TMDB, when available.
+{% enddocs %}
+
+{% docs dim_programmes_genres_json %}
+Complete normalized genre collection retained as JSON.
+{% enddocs %}
+
+{% docs dim_programmes_production_countries_json %}
+Complete normalized production-country collection retained as JSON.
+{% enddocs %}
+
+{% docs dim_programmes_production_companies_json %}
+Complete normalized production-company collection retained as JSON.
+{% enddocs %}
+
+{% docs dim_programmes_spoken_languages_json %}
+Complete normalized spoken-language collection retained as JSON.
+{% enddocs %}
+
+{% docs dim_programmes_metadata_retrieved_at %}
+UTC retrieval timestamp of the selected entity-detail response.
+{% enddocs %}
+
 {% docs dim_channels_channel_key %}
 Deterministic surrogate key generated from source and channel.
 {% enddocs %}

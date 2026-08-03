@@ -20,6 +20,7 @@ The implemented platform currently:
 9. Retrieves and caches full metadata only for confidently matched TMDB identities.
 10. Preserves mutable TMDB popularity and voting metrics as bounded historical snapshots.
 11. Persists direct lineage from broadcast observations to enrichment lookups.
+12. Publishes confidently matched TMDB identities as a canonical programme dimension.
 
 The roadmap adds dbt enrichment models and a Streamlit analytics application
 incrementally.
