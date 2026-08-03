@@ -263,6 +263,8 @@ flowchart LR
     latest_details[greek_tv_intermediate.int_latest_tmdb_entity_details] --> programmes[greek_tv_marts.dim_programmes]
     current --> facts[greek_tv_marts.fct_current_broadcasts]
     channels -->|channel_key| facts
+    broadcast_enrichment[greek_tv_intermediate.int_current_broadcast_enrichment] --> facts
+    programmes -->|programme_key| facts
     facts --> daily[greek_tv_marts.mart_daily_channel_schedule]
 ```
 
@@ -270,8 +272,9 @@ flowchart LR
 TMDB media type and identity, prefers Greek localized metadata when available, and
 excludes mutable popularity and voting measures. `fct_current_broadcasts` has one
 row per current programme observation and adds Athens-local dates, timestamps,
-duration, midnight behavior, and schedule position. The daily mart aggregates the
-fact to one source, channel, and requested schedule date.
+duration, midnight behavior, schedule position, and nullable canonical programme
+identity. Unresolved and unenriched observations remain in the fact. The daily mart
+aggregates the fact to one source, channel, and requested schedule date.
 
 ## Legacy table
 

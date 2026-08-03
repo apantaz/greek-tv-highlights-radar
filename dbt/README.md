@@ -13,8 +13,8 @@ The project declares two ingestion relations and eight enrichment relations as d
 sources. The current graph projects all ten sources into tested raw views, derives
 latest schedule and enrichment state through intermediate views, and publishes a
 channel dimension, canonical programme dimension, current-broadcast fact, and daily
-schedule mart. Programme-aware broadcast and historical metric facts are the next
-warehouse deliveries.
+schedule mart. The broadcast fact carries nullable canonical programme identity;
+historical TMDB metrics are the next warehouse delivery.
 
 The development target uses `greek_tv` as its base schema. dbt combines that base
 with each model folder's custom schema:
