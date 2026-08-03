@@ -94,3 +94,13 @@ The channel dimension, current-broadcast fact, and daily schedule mart are small
 stable consumer interfaces. Materializing them as tables makes query behavior
 predictable and separates consumers from upstream view execution. Each model declares
 its materialization explicitly; future scale changes should be driven by measurement.
+
+## ADR-013
+Title normalization is deterministic and never replaces the source title.
+
+External metadata searches need titles that are insensitive to case, accents,
+punctuation, and incidental whitespace. The normalizer therefore produces a separate
+search value and extracts only explicit leading content ratings and trailing repeat
+markers. It does not infer programme type, season, or alternate-title meaning. This
+keeps future candidate matching reproducible, explainable, and auditable against the
+original schedule observation.

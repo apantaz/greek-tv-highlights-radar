@@ -31,8 +31,10 @@ ProgrammaTileorasis.gr
 
 The source adapter discovers the free channels advertised by the upstream source at
 runtime and can ingest the complete catalog with isolated per-channel failures. TMDB
-enrichment, recommendations, and Streamlit follow now that the ingestion and
-analytics boundaries are reliable.
+enrichment begins with deterministic title normalization that preserves the source
+value while producing an accent- and punctuation-neutral candidate-search value.
+Candidate retrieval, entity matching, recommendations, and Streamlit follow now that
+the ingestion and analytics boundaries are reliable.
 
 ## Quick start
 

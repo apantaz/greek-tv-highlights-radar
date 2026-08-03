@@ -104,6 +104,18 @@ view lineage.
 programme. Later enrichment will introduce a separate canonical programme entity
 instead of overwriting source data.
 
+## Enrichment boundary
+
+Title normalization is a deterministic preparation step for external metadata
+searches. It keeps the whitespace-normalized source title alongside a case-, accent-,
+and punctuation-neutral search title. Only explicit schedule annotations are
+extracted: a leading content rating and a trailing repeat marker.
+
+The normalizer deliberately does not interpret season numerals, programme types, or
+parenthesized alternate titles. Those values can affect entity resolution and remain
+part of the searchable title until candidate scoring has enough evidence to handle
+them. The original observation remains authoritative and is never overwritten.
+
 ## Failure boundary
 
 The run record is created before network access. Fetch, snapshot, parse, quality, or
