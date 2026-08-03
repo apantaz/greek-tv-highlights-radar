@@ -1,3 +1,43 @@
+{% docs fct_tmdb_metrics_metric_observation_id %}
+Primary key of the immutable point-in-time metric observation.
+{% enddocs %}
+
+{% docs fct_tmdb_metrics_entity_detail_id %}
+Entity-detail retrieval that produced the metric observation.
+{% enddocs %}
+
+{% docs fct_tmdb_metrics_programme_key %}
+Foreign key to the canonical programme dimension.
+{% enddocs %}
+
+{% docs fct_tmdb_metrics_tmdb_id %}
+Stable TMDB identifier interpreted within the media type.
+{% enddocs %}
+
+{% docs fct_tmdb_metrics_media_type %}
+TMDB entity namespace: movie or television series.
+{% enddocs %}
+
+{% docs fct_tmdb_metrics_popularity %}
+Mutable TMDB popularity value at observation time.
+{% enddocs %}
+
+{% docs fct_tmdb_metrics_vote_average %}
+Mutable TMDB average vote value from zero to ten at observation time.
+{% enddocs %}
+
+{% docs fct_tmdb_metrics_vote_count %}
+Mutable TMDB vote count at observation time.
+{% enddocs %}
+
+{% docs fct_tmdb_metrics_observed_at %}
+Exact timezone-aware timestamp at which TMDB returned the metrics.
+{% enddocs %}
+
+{% docs fct_tmdb_metrics_observation_date %}
+UTC calendar date derived from the observation timestamp.
+{% enddocs %}
+
 {% docs dim_programmes_programme_key %}
 Deterministic surrogate key generated from media type and TMDB ID.
 {% enddocs %}

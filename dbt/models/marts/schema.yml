@@ -1,6 +1,75 @@
 version: 2
 
 models:
+  - name: fct_tmdb_metrics
+    description: "{{ doc('fct_tmdb_metrics') }}"
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          arguments:
+            compare_model: ref('raw_tmdb_entity_metric_observations')
+    columns:
+      - name: metric_observation_id
+        description: "{{ doc('fct_tmdb_metrics_metric_observation_id') }}"
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('raw_tmdb_entity_metric_observations')
+                field: metric_observation_id
+      - name: entity_detail_id
+        description: "{{ doc('fct_tmdb_metrics_entity_detail_id') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('raw_tmdb_entity_details')
+                field: entity_detail_id
+      - name: programme_key
+        description: "{{ doc('fct_tmdb_metrics_programme_key') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_programmes')
+                field: programme_key
+      - name: tmdb_id
+        description: "{{ doc('fct_tmdb_metrics_tmdb_id') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 1
+      - name: media_type
+        description: "{{ doc('fct_tmdb_metrics_media_type') }}"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments: {values: [movie, tv]}
+      - name: popularity
+        description: "{{ doc('fct_tmdb_metrics_popularity') }}"
+      - name: vote_average
+        description: "{{ doc('fct_tmdb_metrics_vote_average') }}"
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 10
+                row_condition: vote_average is not null
+      - name: vote_count
+        description: "{{ doc('fct_tmdb_metrics_vote_count') }}"
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                row_condition: vote_count is not null
+      - name: observed_at
+        description: "{{ doc('fct_tmdb_metrics_observed_at') }}"
+        data_tests: [not_null]
+      - name: observation_date
+        description: "{{ doc('fct_tmdb_metrics_observation_date') }}"
+        data_tests: [not_null]
+
   - name: dim_programmes
     description: "{{ doc('dim_programmes') }}"
     data_tests:

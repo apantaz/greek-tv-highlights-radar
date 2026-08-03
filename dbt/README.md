@@ -14,7 +14,8 @@ sources. The current graph projects all ten sources into tested raw views, deriv
 latest schedule and enrichment state through intermediate views, and publishes a
 channel dimension, canonical programme dimension, current-broadcast fact, and daily
 schedule mart. The broadcast fact carries nullable canonical programme identity;
-historical TMDB metrics are the next warehouse delivery.
+historical TMDB metrics are exposed at immutable observation grain. Enrichment
+coverage marts are the next warehouse delivery.
 
 The development target uses `greek_tv` as its base schema. dbt combines that base
 with each model folder's custom schema:

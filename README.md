@@ -16,12 +16,13 @@ latest successful schedules into documented business-facing tables.
 
 The warehouse includes tested ingestion and enrichment raw views, schedule
 intermediate views, a channel dimension, a current-broadcast fact, and a daily
-schedule mart. The complete dbt graph contains 21 models protected by 282 data tests.
+schedule mart. The complete dbt graph contains 22 models protected by 298 data tests.
 
 Current development connects the current-broadcast fact to the canonical programme
 dimension through direct observation lineage while retaining unresolved broadcasts.
-The next delivery publishes historical TMDB metrics as a fact. The Python suite
-contains 100 tests.
+Historical TMDB popularity and voting observations are now published as an analytical
+fact. The next delivery adds enrichment-coverage marts. The Python suite contains 100
+tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -214,8 +215,8 @@ The ingestion and enrichment tables are declared as documented dbt sources,
 establishing the read-only boundary between Python and SQL transformation. The
 current dbt graph transforms ingestion sources through the complete schedule
 warehouse and projects enrichment sources through tested raw and current-state
-intermediate views. The canonical programme dimension and programme-aware broadcast
-fact are available; the historical metric fact follows.
+intermediate views. The canonical programme dimension, programme-aware broadcast
+fact, and historical TMDB metrics fact are available.
 
 Run dbt directly from its project directory:
 
@@ -376,7 +377,7 @@ order by media_type, tmdb_id, observed_at;
   temporal validity.
 - The mart layer exposes Athens-local schedule analytics and canonical programme
   identity through two dimensions, a programme-aware broadcast fact, and a daily
-  summary protected by 80 additional tests.
+  daily summary, and historical metrics fact protected by 96 additional tests.
 - TMDB searches retain immutable raw responses and typed candidates without silently
   treating API response order as an accepted entity match.
 - Versioned candidate scores make every matched or unresolved identity explainable.

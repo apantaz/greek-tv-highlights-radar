@@ -55,7 +55,7 @@ and current-state intermediate boundaries.
 - [x] Persist direct broadcast-to-lookup lineage without title-based inference
 - [x] Build a canonical programme dimension
 - [x] Add nullable programme identity to the current-broadcast fact
-- [ ] Publish historical TMDB metric observations as a fact
+- [x] Publish historical TMDB metric observations as a fact
 - [ ] Build enrichment-coverage marts by channel and schedule date
 
 ## Milestone 7 — Analytics product
