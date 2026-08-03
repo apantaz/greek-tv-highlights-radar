@@ -14,9 +14,13 @@ from greek_tv.config import (
 from greek_tv.enrichment import (
     TmdbCandidateRepository,
     TmdbClient,
-    extract_title_evidence,
-    normalize_title,
 )
+from greek_tv.enrichment.batch import (
+    BatchEnrichmentResult,
+    BatchEnrichmentStatus,
+    enrich_current_programmes,
+)
+from greek_tv.enrichment.service import enrich_title
 from greek_tv.ingestion.batch import BatchIngestionResult, ingest_all_schedules
 from greek_tv.logger import configure_logging
 from greek_tv.models import IngestionStatus
@@ -46,6 +50,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     tmdb_search.add_argument("--language", default="el-GR")
     tmdb_search.add_argument("--refresh", action="store_true")
+    enrich = commands.add_parser("enrich", help="enrich all distinct current programmes")
+    enrich.add_argument("--language", default="el-GR")
+    enrich.add_argument("--limit", type=_positive_int)
     return parser
 
 
@@ -54,6 +61,17 @@ def main() -> None:
     args = build_parser().parse_args()
     if args.command == "tmdb-search":
         _search_tmdb(args.title, args.description, args.query, args.language, args.refresh)
+        return
+    if args.command == "enrich":
+        result = enrich_current_programmes(
+            database_path(),
+            language=args.language,
+            client_factory=_tmdb_client,
+            limit=args.limit,
+        )
+        _print_enrichment_summary(result)
+        if result.failed:
+            raise SystemExit(1)
         return
     if args.command == "channels":
         client = ScheduleClient(
@@ -130,53 +148,25 @@ def _search_tmdb(
     refresh: bool,
 ) -> None:
     try:
-        evidence = extract_title_evidence(source_title, description)
-        queries = (
-            (normalize_title(query_override).search_title,)
-            if query_override
-            else evidence.query_titles
+        outcome = enrich_title(
+            TmdbCandidateRepository(database_path()),
+            source_title,
+            description,
+            language=language,
+            client_factory=_tmdb_client,
+            query_override=query_override,
+            refresh=refresh,
         )
-    except ValueError as error:
+    except (ValueError, httpx.HTTPError) as error:
         logging.getLogger(__name__).error("TMDB search failed: %s", error)
         raise SystemExit(1) from error
-    repository = TmdbCandidateRepository(database_path())
-    result = None
-    cache_status = "cached"
-    for query in queries:
-        cache_key = normalize_title(query).normalized_title
-        result = None if refresh else repository.latest(cache_key, language)
-        cache_status = "cached"
-        if result is None:
-            try:
-                token = tmdb_access_token()
-                response = TmdbClient(
-                    token,
-                    timeout=http_timeout_seconds(),
-                    max_attempts=http_max_attempts(),
-                ).search(query, language)
-            except (ValueError, httpx.HTTPError) as error:
-                logging.getLogger(__name__).error("TMDB search failed: %s", error)
-                raise SystemExit(1) from error
-            result = repository.save(cache_key, query, language, response)
-            cache_status = "retrieved"
-        if result.candidates:
-            break
-
-    if result is None:
-        raise RuntimeError("title evidence produced no TMDB queries")
-
-    lookup = repository.record_lookup(
-        evidence,
-        result.search_id,
-        used_query_override=query_override is not None,
-    )
-    persisted_resolution = repository.resolve_lookup(lookup.lookup_id)
-    resolution = persisted_resolution.resolution
+    result = outcome.search
+    resolution = outcome.resolution.resolution
 
     print(
         f"query={result.search_query!r} language={result.language} "
-        f"status={cache_status} candidates={len(result.candidates)} "
-        f"lookup_id={lookup.lookup_id}"
+        f"status={outcome.search_source.value} candidates={len(result.candidates)} "
+        f"lookup_id={outcome.lookup.lookup_id}"
     )
     print(
         f"resolution={resolution.status.value} reason={resolution.reason.value} "
@@ -190,6 +180,35 @@ def _search_tmdb(
             f"tmdb_id={candidate.tmdb_id:<8} year={year} "
             f"score={score.total_score:>6.2f} rank={score.score_rank:<2} {candidate.title}"
         )
+
+
+def _tmdb_client() -> TmdbClient:
+    return TmdbClient(
+        tmdb_access_token(),
+        timeout=http_timeout_seconds(),
+        max_attempts=http_max_attempts(),
+    )
+
+
+def _print_enrichment_summary(result: BatchEnrichmentResult) -> None:
+    print(
+        f"total={result.total} "
+        f"matched={result.count(BatchEnrichmentStatus.MATCHED)} "
+        f"unresolved={result.count(BatchEnrichmentStatus.UNRESOLVED)} "
+        f"skipped={result.count(BatchEnrichmentStatus.SKIPPED)} "
+        f"failed={result.failed} cached={result.cached} retrieved={result.retrieved}"
+    )
+    print()
+    for item in result.programmes:
+        detail = item.error_message or (item.search_source.value if item.search_source else "")
+        print(f"{item.status.value:<10} {item.source_title} {detail}".rstrip())
+
+
+def _positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed < 1:
+        raise ValueError("value must be at least 1")
+    return parsed
 
 
 if __name__ == "__main__":

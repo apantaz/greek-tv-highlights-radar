@@ -59,6 +59,13 @@ def test_tmdb_search_parser_exposes_language_and_refresh_controls():
     assert args.refresh is True
 
 
+def test_enrich_parser_exposes_language_and_incremental_limit():
+    args = cli.build_parser().parse_args(["enrich", "--language", "en-US", "--limit", "10"])
+
+    assert args.language == "en-US"
+    assert args.limit == 10
+
+
 def batch_result(*, failed: bool) -> BatchIngestionResult:
     results = [
         ChannelIngestionResult(

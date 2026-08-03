@@ -18,7 +18,8 @@ seven models protected by 104 data tests.
 
 Current development adds the `v0.5.0` enrichment milestone: deterministic title
 evidence, immutable TMDB candidate caching, and conservative automatic resolution
-with fully auditable component scores. The Python suite contains 83 tests.
+with fully auditable component scores and unattended batch orchestration. The Python
+suite contains 86 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -82,6 +83,27 @@ least 85 points and a lead of at least 10 points over the runner-up. Anything we
 or ambiguous is persisted as `unresolved` with a machine-readable reason and no human
 review step. Unresolved rows keep their accepted TMDB identity fields null while the
 candidate-score rows retain the evidence needed to explain the outcome.
+
+Enrich every distinct programme represented by the current schedules without manual
+title entry:
+
+```bash
+export TMDB_API_TOKEN="your-read-access-token"
+greek-tv enrich
+```
+
+For a controlled first run, bound the number of distinct evidence combinations:
+
+```bash
+greek-tv enrich --limit 10
+```
+
+Batch enrichment is sequential, reuses cached searches, skips evidence already scored
+by the current policy version, and isolates title-level failures. The final summary
+reports matched, unresolved, skipped, failed, cached, and retrieved counts. A repeated
+run therefore performs no TMDB requests for unchanged processed evidence. The command
+exits with status `1` only when operational failures occur; unresolved identities are
+valid data outcomes.
 
 ## Quick start
 

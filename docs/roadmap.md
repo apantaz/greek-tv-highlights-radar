@@ -39,6 +39,7 @@
 
 ## Milestone 5 — Matched entity metadata
 
+- [x] Automate idempotent batch enrichment across distinct current programmes
 - [ ] Retrieve full details only for confidently matched TMDB entities
 - [ ] Cache stable entity metadata by media type, TMDB ID, and language
 - [ ] Snapshot mutable voting and popularity metrics on a bounded refresh interval
