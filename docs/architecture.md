@@ -85,13 +85,15 @@ those states at lookup grain, preserving pending and unresolved evidence with nu
 entity metadata. It does not infer a broadcast relationship from title text; a direct
 broadcast-to-lookup lineage key is required before enriching the broadcast fact.
 
-The mart layer materializes four consumer-facing tables. `dim_channels` provides a
+The mart layer materializes five consumer-facing tables. `dim_channels` provides a
 stable source-and-channel key. `dim_programmes` selects one deterministic localized
 metadata record per TMDB media type and identity while excluding mutable metrics.
 `fct_current_broadcasts` adds Athens-local schedule attributes and nullable canonical
 programme identity at programme-observation grain. Its left joins preserve unresolved
-and unenriched broadcasts. `mart_daily_channel_schedule` aggregates those facts to
-one row per source, channel, and requested date.
+and unenriched broadcasts. `fct_tmdb_metrics` publishes every immutable popularity and
+voting snapshot at metric-observation grain and joins it to canonical programme
+identity. `mart_daily_channel_schedule` aggregates broadcast facts to one row per
+source, channel, and requested date.
 
 ## Data grains
 

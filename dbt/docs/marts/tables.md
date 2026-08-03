@@ -1,3 +1,13 @@
+{% docs fct_tmdb_metrics %}
+
+# Historical TMDB metrics fact
+
+One row per immutable TMDB metric observation. The fact connects every popularity,
+vote-average, and vote-count snapshot to the canonical programme dimension while
+preserving the original UTC observation timestamp for trend analysis.
+
+{% enddocs %}
+
 {% docs dim_programmes %}
 
 # Programme dimension

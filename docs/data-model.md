@@ -265,6 +265,8 @@ flowchart LR
     channels -->|channel_key| facts
     broadcast_enrichment[greek_tv_intermediate.int_current_broadcast_enrichment] --> facts
     programmes -->|programme_key| facts
+    raw_metrics[greek_tv_raw.raw_tmdb_entity_metric_observations] --> metric_facts[greek_tv_marts.fct_tmdb_metrics]
+    programmes -->|programme_key| metric_facts
     facts --> daily[greek_tv_marts.mart_daily_channel_schedule]
 ```
 
@@ -275,6 +277,8 @@ row per current programme observation and adds Athens-local dates, timestamps,
 duration, midnight behavior, schedule position, and nullable canonical programme
 identity. Unresolved and unenriched observations remain in the fact. The daily mart
 aggregates the fact to one source, channel, and requested schedule date.
+`fct_tmdb_metrics` retains one row per immutable metric observation and connects each
+snapshot to its canonical programme for historical popularity and voting analysis.
 
 ## Legacy table
 
