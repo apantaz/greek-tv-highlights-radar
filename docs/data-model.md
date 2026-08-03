@@ -61,9 +61,10 @@ while the underlying tables retain the complete ingestion history.
 
 ## dbt source boundary
 
-The repository-local dbt project declares `ingestion_runs` and
-`broadcast_observations` as documented sources in DuckDB's `main` schema. Derived
-models never mutate these ingestion-owned tables.
+The repository-local dbt project declares the two ingestion relations and five
+enrichment relations as documented sources in DuckDB's `main` schema. Derived models
+never mutate these Python-owned tables. The current dbt graph transforms the
+ingestion sources; enrichment-source models are planned for Milestone 5.
 
 The first derived layer adds two views without changing the source relationships:
 
@@ -153,7 +154,7 @@ One `tmdb_searches` row preserves one complete external response. Its zero or mo
 preserves API response order without claiming that any candidate is the correct
 programme match. `tmdb_lookup_contexts` separately preserves the source title,
 production year, query variants, and selected search so reusable API cache entries do
-not lose observation-specific evidence. dbt declares all three relations as read-only
+not lose observation-specific evidence. dbt declares all five relations as read-only
 enrichment sources. Each lookup can have append-only versioned resolution runs;
 component scores preserve how every candidate received its final rank.
 

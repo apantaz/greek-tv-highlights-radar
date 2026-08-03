@@ -6,8 +6,9 @@ explainable daily highlights.
 
 ## Current milestone
 
-The latest release, `v0.4.0`, delivers the first complete analytics warehouse on top of reliable
-multi-channel ingestion from
+The latest release, `v0.5.0`, adds deterministic title-evidence extraction,
+immutable TMDB candidate caching, and conservative automatic entity resolution to
+the analytics warehouse built on reliable multi-channel ingestion from
 [ProgrammaTileorasis.gr](https://programmatileorasis.gr/). The source catalog is
 discovered at runtime, ingestion history remains immutable, and dbt transforms the
 latest successful schedules into documented business-facing tables.
@@ -16,10 +17,9 @@ The warehouse includes tested raw and intermediate views, a channel dimension, a
 current-broadcast fact, and a daily schedule mart. The complete dbt graph contains
 seven models protected by 104 data tests.
 
-Current development adds the `v0.5.0` enrichment milestone: deterministic title
-evidence, immutable TMDB candidate caching, and conservative automatic resolution
-with fully auditable component scores and unattended batch orchestration. The Python
-suite contains 87 tests.
+Current development adds unattended, idempotent batch enrichment across distinct
+current programmes, with optional channel and schedule-date filters. The Python suite
+contains 87 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -32,6 +32,12 @@ ProgrammaTileorasis.gr
   → tested raw dbt views
   → latest successful runs and current broadcasts
   → channel dimension, broadcast fact, and daily schedule mart
+
+Current programme evidence
+  → deterministic title and production-year extraction
+  → cached TMDB movie and TV candidates
+  → explainable candidate scores
+  → matched identity or explicit unresolved outcome
 ```
 
 The source adapter discovers the free channels advertised by the upstream source at
@@ -48,7 +54,9 @@ one source title:
 
 ```bash
 export TMDB_API_TOKEN="your-read-access-token"
-greek-tv tmdb-search --title "Η Μάνα του 10αριού"
+greek-tv tmdb-search \
+  --title "Ο Χάρι Πότερ (Harry Potter and the Order of the Phoenix)" \
+  --description "Αμερικανικής παραγωγής 2007."
 ```
 
 The command normalizes the title, searches TMDB for movie and TV results, and stores
@@ -70,8 +78,9 @@ greek-tv tmdb-search \
 ```
 
 Some descriptions begin with a bracketed international title. Pass the source
-description with `--description` when testing one title manually. `--query` remains an
-explicit fallback for records whose source text contains insufficient evidence.
+description with `--description` when diagnosing one title. `--query` is available
+for diagnostic experiments, but it is not part of unattended enrichment: records
+whose source text contains insufficient evidence remain unresolved.
 
 Candidate rank records API response order only. It is not an accepted entity match or
 a recommendation score.
@@ -152,10 +161,11 @@ The repository includes a local dbt project configured for the same DuckDB datab
 It requires dbt Core `1.12.x`; both local development dependencies and isolated Git
 hooks enforce that compatibility line. The `version` in `dbt_project.yml` describes
 the project itself, while `require-dbt-version` constrains the dbt Core runtime.
-The ingestion tables are declared as documented dbt sources, establishing the
-read-only boundary between Python ingestion and SQL transformation. Tested raw views
-and intermediate current-state views feed three tables in `greek_tv_marts` without
-changing source data.
+The ingestion and enrichment tables are declared as documented dbt sources,
+establishing the read-only boundary between Python and SQL transformation. The
+current dbt graph transforms the ingestion sources into tested raw and intermediate
+views and three tables in `greek_tv_marts`; enrichment models are the next warehouse
+delivery.
 
 Run dbt directly from its project directory:
 
@@ -246,6 +256,23 @@ select
 from tmdb_searches as searches
 inner join tmdb_candidates as candidates using (search_id)
 order by searches.retrieved_at desc, candidates.candidate_rank;
+
+select
+    contexts.source_title,
+    contexts.production_year,
+    resolutions.status,
+    resolutions.reason,
+    resolutions.tmdb_id,
+    resolutions.media_type,
+    resolutions.winning_score,
+    resolutions.score_margin
+from tmdb_lookup_contexts as contexts
+inner join tmdb_resolutions as resolutions using (lookup_id)
+qualify row_number() over (
+    partition by contexts.lookup_id
+    order by resolutions.resolved_at desc
+) = 1
+order by contexts.created_at desc;
 ```
 
 ## Engineering properties
@@ -273,6 +300,9 @@ order by searches.retrieved_at desc, candidates.candidate_rank;
   programme fact, and daily summary protected by 52 additional tests.
 - TMDB searches retain immutable raw responses and typed candidates without silently
   treating API response order as an accepted entity match.
+- Versioned candidate scores make every matched or unresolved identity explainable.
+- Batch enrichment is cache-aware, evidence-idempotent, filterable, and isolates
+  programme-level failures.
 - CI runs Ruff, pytest, and dbt foundation validation on every pull request and push
   to `main`.
 

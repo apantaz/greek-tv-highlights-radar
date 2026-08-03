@@ -9,9 +9,11 @@ The project requires dbt Core `>=1.12.0,<1.13.0`. This constraint is declared th
 The separate `version` property is dbt project metadata and does not select the dbt
 Core runtime.
 
-The project declares ingestion relations as dbt sources, projects them into tested
-raw views, derives the latest successful schedule through intermediate views, and
-publishes a channel dimension, current-broadcast fact, and daily schedule mart.
+The project declares two ingestion relations and five enrichment relations as dbt
+sources. The current graph projects the ingestion sources into tested raw views,
+derives the latest successful schedule through intermediate views, and publishes a
+channel dimension, current-broadcast fact, and daily schedule mart. Transformations
+for matched enrichment metadata are planned for Milestone 5.
 
 The development target uses `greek_tv` as its base schema. dbt combines that base
 with each model folder's custom schema:
@@ -22,8 +24,9 @@ with each model folder's custom schema:
 | `models/intermediate` | `greek_tv_intermediate` |
 | `models/marts` | `greek_tv_marts` |
 
-Relation and column descriptions are persisted for every model. The source-owned
-ingestion tables remain in `main`; only dbt-derived relations use the schemas above.
+Relation and column descriptions are persisted for every model. All Python-owned
+ingestion and enrichment tables remain in `main`; only dbt-derived relations use the
+schemas above.
 Seeds use the `raw` custom schema, producing `greek_tv_raw`. Snapshots use the
 `snapshots` target schema and default to the timestamp strategy; each snapshot must
 still declare the column used by `updated_at`. Data tests do not persist failed rows

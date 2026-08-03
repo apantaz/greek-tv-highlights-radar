@@ -109,9 +109,10 @@ original schedule observation.
 TMDB responses and candidates are cached append-only before entity resolution.
 
 The canonical normalized title and response language form the exact cache lookup,
-while the API receives and records a human-readable query with accents preserved. An
-explicit override can use an international title without changing source evidence. A
-cache miss stores the complete raw multi-search response and ordered, typed movie and
+while the API receives and records a human-readable query with accents preserved. A
+diagnostic command can explicitly test an international title without changing
+source evidence; unattended processing uses source-derived evidence only. A cache
+miss stores the complete raw multi-search response and ordered, typed movie and
 television candidates in one transaction; an explicit refresh creates new history.
 People and malformed results remain auditable in the raw JSON but do not enter
 candidate rows. No returned rank is interpreted as an accepted match. This limits
@@ -126,7 +127,7 @@ additional TMDB search variants, and stated production years are retained for la
 scoring. The source site's IMDb menu is not an identifier: it constructs a Google
 `site:imdb.com` query from the same displayed title. Google result order is therefore
 excluded from the deterministic pipeline. Missing international titles remain
-unresolved or require an explicit override rather than an inferred translation.
+unresolved rather than receiving an inferred translation or manual correction.
 
 ## ADR-016
 Source lookup context is separate from the reusable TMDB response cache.
