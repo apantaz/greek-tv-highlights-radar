@@ -1,8 +1,8 @@
 # Roadmap
 
 The `v0.6.0` release adds unattended batch orchestration and cached full metadata for
-confidently matched entities. Current development adds the dbt enrichment warehouse,
-starting with its tested raw source boundary.
+confidently matched entities. The dbt enrichment warehouse now includes tested raw
+and current-state intermediate boundaries.
 
 ## Milestone 1 — ERT1 vertical slice
 
@@ -48,9 +48,17 @@ starting with its tested raw source boundary.
 - [x] Cache stable entity metadata by media type, TMDB ID, and language
 - [x] Snapshot mutable voting and popularity metrics on a bounded refresh interval
 - [x] Project every enrichment source into documented, tested dbt raw views
-- [ ] Expose resolved entity metadata through tested dbt models
+- [x] Expose latest resolution, entity metadata, and metrics through tested intermediate models
 
-## Milestone 6 — Analytics product
+## Milestone 6 — Enrichment marts
+
+- [ ] Persist direct broadcast-to-lookup lineage without title-based inference
+- [ ] Build a canonical programme dimension
+- [ ] Add nullable programme identity to the current-broadcast fact
+- [ ] Publish historical TMDB metric observations as a fact
+- [ ] Build enrichment-coverage marts by channel and schedule date
+
+## Milestone 7 — Analytics product
 
 - [ ] Rank transparent daily highlights
 - [ ] Build archive search and pipeline-status views in Streamlit

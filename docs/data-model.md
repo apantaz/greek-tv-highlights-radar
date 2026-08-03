@@ -221,6 +221,25 @@ derived result is semantically equivalent to the ingestion-owned `current_broadc
 view while exposing additional source, schedule-date, observation, and completion
 metadata for downstream models.
 
+## Enrichment current-state lineage
+
+```mermaid
+flowchart LR
+    raw_contexts[raw_tmdb_lookup_contexts] --> resolved[int_resolved_programmes]
+    raw_searches[raw_tmdb_searches] --> resolved
+    raw_resolutions[raw_tmdb_resolutions] --> latest_resolutions[int_latest_tmdb_resolutions]
+    latest_resolutions --> resolved
+    raw_details[raw_tmdb_entity_details] --> latest_details[int_latest_tmdb_entity_details]
+    latest_details --> resolved
+    raw_metrics[raw_tmdb_entity_metric_observations] --> latest_metrics[int_latest_tmdb_entity_metrics]
+    latest_metrics --> resolved
+```
+
+The three latest-state models use timestamps plus stable identifiers for deterministic
+tie-breaking. `int_resolved_programmes` has one row per lookup context and retains
+pending and unresolved outcomes with null entity metadata. No title-based join to
+broadcast observations is performed because that would not provide reliable lineage.
+
 ## Mart lineage
 
 ```mermaid
