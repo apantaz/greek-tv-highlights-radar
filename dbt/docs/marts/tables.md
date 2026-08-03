@@ -1,3 +1,14 @@
+{% docs dim_programmes %}
+
+# Programme dimension
+
+One row per confidently matched TMDB identity. The dimension uses a deterministic
+surrogate key derived from media type and TMDB ID, prefers Greek localized metadata
+when available, and exposes the latest stable descriptive attributes. Mutable
+popularity and voting metrics are deliberately excluded.
+
+{% enddocs %}
+
 {% docs dim_channels %}
 
 # Channel dimension

@@ -16,11 +16,11 @@ latest successful schedules into documented business-facing tables.
 
 The warehouse includes tested ingestion and enrichment raw views, schedule
 intermediate views, a channel dimension, a current-broadcast fact, and a daily
-schedule mart. The complete dbt graph contains 20 models protected by 254 data tests.
+schedule mart. The complete dbt graph contains 21 models protected by 275 data tests.
 
-Current development persists direct lineage from exact broadcast observations to
-their enrichment lookups and exposes one current enrichment row per broadcast. The
-next delivery publishes enrichment marts. The Python suite contains 100 tests.
+Current development adds a canonical programme dimension on top of the direct
+broadcast-to-enrichment lineage. The next delivery adds nullable programme identity
+to the current-broadcast fact. The Python suite contains 100 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -213,7 +213,8 @@ The ingestion and enrichment tables are declared as documented dbt sources,
 establishing the read-only boundary between Python and SQL transformation. The
 current dbt graph transforms ingestion sources through the complete schedule
 warehouse and projects enrichment sources through tested raw and current-state
-intermediate views. Enrichment marts are the next warehouse delivery.
+intermediate views. The canonical programme dimension is the first enrichment mart;
+programme-aware broadcast and historical metric facts follow.
 
 Run dbt directly from its project directory:
 

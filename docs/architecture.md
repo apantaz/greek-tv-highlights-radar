@@ -85,10 +85,12 @@ those states at lookup grain, preserving pending and unresolved evidence with nu
 entity metadata. It does not infer a broadcast relationship from title text; a direct
 broadcast-to-lookup lineage key is required before enriching the broadcast fact.
 
-The mart layer materializes three consumer-facing tables. `dim_channels` provides a
-stable source-and-channel key, `fct_current_broadcasts` adds Athens-local schedule
-attributes at programme-observation grain, and `mart_daily_channel_schedule`
-aggregates those facts to one row per source, channel, and requested date.
+The mart layer materializes four consumer-facing tables. `dim_channels` provides a
+stable source-and-channel key. `dim_programmes` selects one deterministic localized
+metadata record per TMDB media type and identity while excluding mutable metrics.
+`fct_current_broadcasts` adds Athens-local schedule attributes at
+programme-observation grain, and `mart_daily_channel_schedule` aggregates those facts
+to one row per source, channel, and requested date.
 
 ## Data grains
 
@@ -103,14 +105,15 @@ view lineage.
   source/channel/date partition.
 - `int_current_broadcasts`: dbt-owned programme observations for those selected runs.
 - `dim_channels`: one currently represented source and channel.
+- `dim_programmes`: one confidently matched TMDB media type and identity.
 - `fct_current_broadcasts`: one current programme observation enriched for analysis.
 - `mart_daily_channel_schedule`: one source/channel/requested-date schedule summary.
 - `broadcasts`: preserved milestone-one table; migrated non-destructively and retained
   for audit compatibility.
 
-`Broadcast` is still a source observation, not a canonical film or television
-programme. Later enrichment will introduce a separate canonical programme entity
-instead of overwriting source data.
+`Broadcast` remains a source observation rather than a canonical film or television
+programme. `dim_programmes` provides that separate identity without overwriting the
+source data.
 
 ## Enrichment boundary
 
