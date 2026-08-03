@@ -126,3 +126,49 @@ sources:
             description: TMDB average vote value at retrieval time.
           - name: vote_count
             description: TMDB vote count at retrieval time.
+
+      - name: tmdb_resolutions
+        description: Append-only conservative resolution outcomes for source lookups.
+        columns:
+          - name: resolution_id
+            description: Unique identifier for one scoring execution.
+          - name: lookup_id
+            description: Source-evidence lookup evaluated by this execution.
+          - name: scoring_version
+            description: Version of the deterministic scoring policy.
+          - name: status
+            description: Final outcome; matched or unresolved.
+          - name: reason
+            description: Machine-readable explanation for the outcome.
+          - name: winning_candidate_rank
+            description: API response rank of the highest-scoring candidate.
+          - name: tmdb_id
+            description: Accepted TMDB identifier; null for every unresolved outcome.
+          - name: media_type
+            description: Accepted TMDB media type; null for every unresolved outcome.
+          - name: winning_score
+            description: Total score of the highest-ranked candidate.
+          - name: runner_up_score
+            description: Total score of the second-ranked candidate when available.
+          - name: score_margin
+            description: Difference between winner and runner-up total scores.
+          - name: resolved_at
+            description: UTC timestamp at which scoring was executed.
+
+      - name: tmdb_candidate_scores
+        description: Component-level score evidence for every evaluated candidate.
+        columns:
+          - name: resolution_id
+            description: Resolution execution that produced the score.
+          - name: candidate_rank
+            description: Candidate position in the cached TMDB response.
+          - name: tmdb_id
+            description: TMDB identifier evaluated by the scoring policy.
+          - name: title_score
+            description: Title-similarity score from zero to one hundred.
+          - name: year_score
+            description: Production-year agreement score, null without source evidence.
+          - name: total_score
+            description: Weighted total confidence score from zero to one hundred.
+          - name: score_rank
+            description: Candidate rank after deterministic scoring.

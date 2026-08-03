@@ -14,9 +14,11 @@ The implemented platform currently:
 4. Preserves ingestion history for future analysis.
 5. Declares the ingestion boundary as documented dbt sources.
 6. Builds tested raw, intermediate, dimensional, fact, and mart models.
+7. Retrieves, caches, and conservatively resolves TMDB candidates from explicit
+   schedule evidence.
 
-The roadmap adds dbt transformations, TMDB enrichment, and a Streamlit analytics
-application incrementally.
+The roadmap adds full matched-entity metadata, historical metric snapshots, and a
+Streamlit analytics application incrementally.
 
 The project is intentionally designed as a production-quality portfolio that demonstrates modern Analytics Engineering and Data Engineering practices.
 
@@ -55,7 +57,6 @@ Current stack:
 Planned additions:
 
 - SQLFluff
-- TMDB enrichment
 - Streamlit
 
 ---
