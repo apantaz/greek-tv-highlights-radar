@@ -269,6 +269,8 @@ flowchart LR
     programmes -->|programme_key| metric_facts
     facts --> daily[greek_tv_marts.mart_daily_channel_schedule]
     facts --> coverage[greek_tv_marts.mart_daily_enrichment_coverage]
+    facts --> highlights[greek_tv_marts.mart_daily_highlights]
+    latest_metrics[greek_tv_intermediate.int_latest_tmdb_entity_metrics] --> highlights
 ```
 
 `dim_channels` has one row per source and channel. `dim_programmes` has one row per
@@ -283,6 +285,10 @@ snapshot to its canonical programme for historical popularity and voting analysi
 `mart_daily_enrichment_coverage` aggregates every broadcast fact by source, channel,
 and requested date, exposing pipeline coverage without hiding schedules that have no
 enrichment yet.
+`mart_daily_highlights` retains eligible broadcasts at observation grain and adds a
+deterministic rank within source, channel, and schedule date. It uses the latest
+available metric observation and exposes every raw input and normalized score
+component rather than persisting an opaque recommendation.
 
 ## Legacy table
 

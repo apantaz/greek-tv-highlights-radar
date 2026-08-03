@@ -1,3 +1,30 @@
+{% docs mart_daily_highlights_observation_id %}Exact current broadcast observation ranked by the mart.{% enddocs %}
+{% docs mart_daily_highlights_channel_key %}Foreign key to the channel dimension.{% enddocs %}
+{% docs mart_daily_highlights_programme_key %}Foreign key to the canonical programme dimension.{% enddocs %}
+{% docs mart_daily_highlights_source %}Upstream schedule source containing the broadcast.{% enddocs %}
+{% docs mart_daily_highlights_channel %}Channel whose daily highlights include the broadcast.{% enddocs %}
+{% docs mart_daily_highlights_schedule_date %}Requested schedule date within which the broadcast is ranked.{% enddocs %}
+{% docs mart_daily_highlights_programme_position %}Original chronological position in the channel schedule.{% enddocs %}
+{% docs mart_daily_highlights_schedule_title %}Programme title exactly as observed in the schedule.{% enddocs %}
+{% docs mart_daily_highlights_starts_at_local %}Athens-local scheduled start timestamp.{% enddocs %}
+{% docs mart_daily_highlights_programme_title %}Preferred localized canonical programme title.{% enddocs %}
+{% docs mart_daily_highlights_original_title %}Canonical programme title in its original language.{% enddocs %}
+{% docs mart_daily_highlights_release_year %}Release or first-air year when supplied by TMDB.{% enddocs %}
+{% docs mart_daily_highlights_imdb_id %}IMDb identifier supplied by TMDB when available.{% enddocs %}
+{% docs mart_daily_highlights_genres_json %}Complete canonical genre collection retained as JSON.{% enddocs %}
+{% docs mart_daily_highlights_metric_observation_id %}Latest TMDB metric observation used by ranking version `v1`.{% enddocs %}
+{% docs mart_daily_highlights_popularity %}Raw TMDB popularity value used by the popularity component.{% enddocs %}
+{% docs mart_daily_highlights_vote_average %}Raw TMDB vote average used by the quality component.{% enddocs %}
+{% docs mart_daily_highlights_vote_count %}Raw TMDB vote count used by the confidence component.{% enddocs %}
+{% docs mart_daily_highlights_metrics_observed_at %}Timestamp of the metric observation used for ranking.{% enddocs %}
+{% docs mart_daily_highlights_quality_score %}Vote average normalized linearly from zero to 100.{% enddocs %}
+{% docs mart_daily_highlights_confidence_score %}Vote count normalized from zero to 100 on a base-10 logarithmic scale and capped at 100.{% enddocs %}
+{% docs mart_daily_highlights_popularity_score %}Non-negative popularity normalized from zero to 100 on a base-10 logarithmic scale and capped at 100.{% enddocs %}
+{% docs mart_daily_highlights_highlight_score %}Weighted score: 70% quality, 20% confidence, and 10% popularity.{% enddocs %}
+{% docs mart_daily_highlights_highlight_rank %}Deterministic score order within source, channel, and requested schedule date.{% enddocs %}
+{% docs mart_daily_highlights_ranking_version %}Version of the eligibility and scoring policy, currently `v1`.{% enddocs %}
+{% docs mart_daily_highlights_ranking_explanation %}Human-readable summary of the scoring weights.{% enddocs %}
+
 {% docs mart_daily_enrichment_coverage_channel_key %}Foreign key to the channel dimension.{% enddocs %}
 {% docs mart_daily_enrichment_coverage_source %}Upstream schedule source measured by the row.{% enddocs %}
 {% docs mart_daily_enrichment_coverage_channel %}Channel measured by the row.{% enddocs %}

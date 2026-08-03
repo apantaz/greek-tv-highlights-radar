@@ -61,5 +61,5 @@ Streamlit analytics product follow.
 
 ## Milestone 7 — Analytics product
 
-- [ ] Rank transparent daily highlights
+- [x] Rank transparent daily highlights
 - [ ] Build archive search and pipeline-status views in Streamlit
