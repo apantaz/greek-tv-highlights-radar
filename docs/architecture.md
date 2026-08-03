@@ -116,6 +116,44 @@ parenthesized alternate titles. Those values can affect entity resolution and re
 part of the searchable title until candidate scoring has enough evidence to handle
 them. The original observation remains authoritative and is never overwritten.
 
+A separate evidence extractor identifies Latin-script titles explicitly supplied in
+parentheses or at the start of a bracketed description. It also captures a stated
+production year. International variants are searched before the localized title, but
+their presence is evidence only—not an accepted match.
+
+TMDB retrieval sends a human-readable search title with accents preserved, while its
+canonical normalized form and requested response language act as the cache key. An
+explicit query override supports localized schedule titles without changing their
+source evidence. A cache miss makes one authenticated multi-search request; a cache
+hit returns the latest stored result without network access. Explicit refreshes
+append a new search rather than replacing history.
+
+```text
+source title
+  -> deterministic normalized title
+  -> latest exact-query cache lookup
+      -> cache hit: stored candidates
+      -> cache miss/refresh: TMDB multi-search
+          -> tmdb_searches: immutable raw JSON response
+          -> tmdb_candidates: ordered movie and TV candidates
+          -> tmdb_lookup_contexts: source evidence linked to selected search
+```
+
+People and malformed results are excluded from the typed candidate table but remain
+available in the raw JSON. Candidate response order is descriptive API metadata, not
+an entity-resolution decision.
+
+Lookup context is stored separately from the reusable query cache. Every command
+records the complete source title, canonical source identity, extracted production
+year, ordered query variants, override usage, and selected search ID. Candidate
+scoring can therefore use source-specific evidence even when several observations
+reuse the same cached TMDB response.
+
+The source website's search menu does not expose an IMDb identifier. Its client-side
+JavaScript constructs a Google query in the form `site:imdb.com <displayed title>`.
+Because that adds no identity evidence and search ranking is external and unstable,
+the pipeline does not scrape or trust the first Google result.
+
 ## Failure boundary
 
 The run record is created before network access. Fetch, snapshot, parse, quality, or

@@ -24,3 +24,11 @@ def http_max_attempts() -> int:
 
 def minimum_schedule_records() -> int:
     return int(os.getenv("MINIMUM_SCHEDULE_RECORDS", "5"))
+
+
+def tmdb_access_token() -> str:
+    """Return the private TMDB read-access token or fail with setup guidance."""
+    token = os.getenv("TMDB_API_TOKEN", "").strip()
+    if not token:
+        raise ValueError("TMDB_API_TOKEN is required for TMDB searches")
+    return token

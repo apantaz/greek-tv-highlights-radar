@@ -18,6 +18,7 @@ class NormalizedTitle:
     """A source title and the explicit metadata extracted from it."""
 
     original_title: str
+    search_title: str
     normalized_title: str
     content_rating: str | None
     is_repeat: bool
@@ -57,6 +58,8 @@ def normalize_title(title: str) -> NormalizedTitle:
     if repeat_match:
         candidate = candidate[: repeat_match.start()]
 
+    search_title = candidate.strip()
+
     decomposed = unicodedata.normalize("NFKD", candidate.casefold())
     without_accents = "".join(
         character for character in decomposed if not unicodedata.combining(character)
@@ -69,6 +72,7 @@ def normalize_title(title: str) -> NormalizedTitle:
 
     return NormalizedTitle(
         original_title=original_title,
+        search_title=search_title,
         normalized_title=normalized_title,
         content_rating=content_rating,
         is_repeat=is_repeat,

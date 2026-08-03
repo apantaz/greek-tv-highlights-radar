@@ -23,6 +23,7 @@ def test_extracts_content_rating_prefix(rating):
     result = normalize_title(f"[{rating}] Ξένη Ταινία")
 
     assert result.original_title == f"[{rating}] Ξένη Ταινία"
+    assert result.search_title == "Ξένη Ταινία"
     assert result.normalized_title == "ξενη ταινια"
     assert result.content_rating == "K8"
     assert result.is_repeat is False
@@ -33,6 +34,7 @@ def test_extracts_trailing_repeat_marker(marker):
     result = normalize_title(f"Happy Traveller ({marker})")
 
     assert result.normalized_title == "happy traveller"
+    assert result.search_title == "Happy Traveller"
     assert result.is_repeat is True
 
 

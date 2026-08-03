@@ -78,6 +78,57 @@ Both views preserve their source grain. dbt tests enforce unique primary identif
 the run-to-observation relationship, required attributes, valid run statuses, and
 basic numerical and temporal expectations.
 
+## Enrichment cache
+
+```mermaid
+erDiagram
+    tmdb_searches ||--o{ tmdb_candidates : returns
+    tmdb_searches ||--o{ tmdb_lookup_contexts : supports
+
+    tmdb_searches {
+        varchar search_id PK
+        varchar normalized_title
+        varchar search_query
+        varchar language
+        timestamptz retrieved_at
+        json response_json
+    }
+
+    tmdb_candidates {
+        varchar search_id PK, FK
+        integer candidate_rank PK
+        integer tmdb_id
+        varchar media_type
+        varchar title
+        varchar original_title
+        varchar original_language
+        date release_date
+        varchar overview
+        double popularity
+        double vote_average
+        integer vote_count
+    }
+
+    tmdb_lookup_contexts {
+        varchar lookup_id PK
+        varchar source_title
+        varchar normalized_source_title
+        integer production_year
+        json query_titles_json
+        boolean used_query_override
+        varchar search_id FK
+        timestamptz created_at
+    }
+```
+
+One `tmdb_searches` row preserves one complete external response. Its zero or more
+`tmdb_candidates` rows contain only movie and TV results. The composite candidate key
+preserves API response order without claiming that any candidate is the correct
+programme match. `tmdb_lookup_contexts` separately preserves the source title,
+production year, query variants, and selected search so reusable API cache entries do
+not lose observation-specific evidence. dbt declares all three relations as read-only
+enrichment sources.
+
 ## Intermediate current-state lineage
 
 ```mermaid
