@@ -1,6 +1,126 @@
 version: 2
 
 models:
+  - name: mart_daily_enrichment_coverage
+    description: "{{ doc('mart_daily_enrichment_coverage') }}"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [source, channel, schedule_date]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "submitted_for_enrichment <= programme_count"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "resolved_programmes <= submitted_for_enrichment"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "matched_programmes + unresolved_programmes = resolved_programmes"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "programmes_with_canonical_metadata <= matched_programmes"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "programmes_missing_enrichment + submitted_for_enrichment = programme_count"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "matched_programmes_missing_metadata + programmes_with_canonical_metadata = matched_programmes"
+    columns:
+      - name: channel_key
+        description: "{{ doc('mart_daily_enrichment_coverage_channel_key') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_channels')
+                field: channel_key
+      - name: source
+        description: "{{ doc('mart_daily_enrichment_coverage_source') }}"
+        data_tests: [not_null]
+      - name: channel
+        description: "{{ doc('mart_daily_enrichment_coverage_channel') }}"
+        data_tests: [not_null]
+      - name: schedule_date
+        description: "{{ doc('mart_daily_enrichment_coverage_schedule_date') }}"
+        data_tests: [not_null]
+      - name: programme_count
+        description: "{{ doc('mart_daily_enrichment_coverage_programme_count') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 1}
+      - name: submitted_for_enrichment
+        description: "{{ doc('mart_daily_enrichment_coverage_submitted') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0}
+      - name: resolved_programmes
+        description: "{{ doc('mart_daily_enrichment_coverage_resolved') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0}
+      - name: matched_programmes
+        description: "{{ doc('mart_daily_enrichment_coverage_matched') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0}
+      - name: unresolved_programmes
+        description: "{{ doc('mart_daily_enrichment_coverage_unresolved') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0}
+      - name: programmes_with_canonical_metadata
+        description: "{{ doc('mart_daily_enrichment_coverage_canonical') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0}
+      - name: programmes_missing_enrichment
+        description: "{{ doc('mart_daily_enrichment_coverage_missing') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0}
+      - name: matched_programmes_missing_metadata
+        description: "{{ doc('mart_daily_enrichment_coverage_missing_metadata') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0}
+      - name: enrichment_coverage_pct
+        description: "{{ doc('mart_daily_enrichment_coverage_enrichment_pct') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0, max_value: 100}
+      - name: resolution_coverage_pct
+        description: "{{ doc('mart_daily_enrichment_coverage_resolution_pct') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0, max_value: 100}
+      - name: match_rate_pct
+        description: "{{ doc('mart_daily_enrichment_coverage_match_pct') }}"
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 100
+                row_condition: match_rate_pct is not null
+      - name: canonical_metadata_coverage_pct
+        description: "{{ doc('mart_daily_enrichment_coverage_canonical_pct') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0, max_value: 100}
+      - name: ingestion_completed_at
+        description: "{{ doc('mart_daily_enrichment_coverage_ingestion_completed_at') }}"
+        data_tests: [not_null]
+
   - name: fct_tmdb_metrics
     description: "{{ doc('fct_tmdb_metrics') }}"
     data_tests:

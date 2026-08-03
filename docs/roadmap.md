@@ -56,7 +56,7 @@ and current-state intermediate boundaries.
 - [x] Build a canonical programme dimension
 - [x] Add nullable programme identity to the current-broadcast fact
 - [x] Publish historical TMDB metric observations as a fact
-- [ ] Build enrichment-coverage marts by channel and schedule date
+- [x] Build enrichment-coverage marts by channel and schedule date
 
 ## Milestone 7 — Analytics product
 

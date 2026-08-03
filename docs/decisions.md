@@ -189,3 +189,13 @@ grain and is populated for both newly processed and cached evidence. dbt uses th
 relationship to expose enrichment at broadcast grain while retaining unlinked and
 unresolved observations. Title-based inference is prohibited because matching text is
 not a durable lineage key.
+
+## ADR-022
+Enrichment coverage is materialized before introducing a semantic layer.
+
+The daily coverage mart uses every current broadcast as the denominator for
+enrichment, resolution, and canonical-metadata coverage. Match rate uses resolved
+broadcasts and remains null when no resolution exists, avoiding a misleading zero.
+Explicit reconciliation tests protect these definitions. A semantic layer may later
+publish the same governed metrics to multiple consumers, but the local DuckDB and
+single-application scope does not justify making it a runtime dependency yet.

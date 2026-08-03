@@ -1,3 +1,14 @@
+{% docs mart_daily_enrichment_coverage %}
+
+# Daily enrichment coverage mart
+
+One row per source, channel, and requested schedule date. The mart reports how many
+current broadcasts entered enrichment, reached a resolution, matched confidently,
+and obtained canonical metadata. Coverage rates retain all broadcasts as the primary
+denominator; match rate uses resolved broadcasts and is null when none were resolved.
+
+{% enddocs %}
+
 {% docs fct_tmdb_metrics %}
 
 # Historical TMDB metrics fact

@@ -16,13 +16,14 @@ latest successful schedules into documented business-facing tables.
 
 The warehouse includes tested ingestion and enrichment raw views, schedule
 intermediate views, a channel dimension, a current-broadcast fact, and a daily
-schedule mart. The complete dbt graph contains 22 models protected by 298 data tests.
+schedule mart. The complete dbt graph contains 23 models protected by 334 data tests.
 
 Current development connects the current-broadcast fact to the canonical programme
 dimension through direct observation lineage while retaining unresolved broadcasts.
-Historical TMDB popularity and voting observations are now published as an analytical
-fact. The next delivery adds enrichment-coverage marts. The Python suite contains 100
-tests.
+Historical TMDB popularity and voting observations are published as an analytical
+fact, and daily enrichment coverage makes pipeline completeness measurable by channel
+and schedule date. Milestone 6 is complete; transparent highlight ranking is next.
+The Python suite contains 100 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -216,7 +217,7 @@ establishing the read-only boundary between Python and SQL transformation. The
 current dbt graph transforms ingestion sources through the complete schedule
 warehouse and projects enrichment sources through tested raw and current-state
 intermediate views. The canonical programme dimension, programme-aware broadcast
-fact, and historical TMDB metrics fact are available.
+fact, historical TMDB metrics fact, and daily enrichment-coverage mart are available.
 
 Run dbt directly from its project directory:
 
@@ -377,7 +378,8 @@ order by media_type, tmdb_id, observed_at;
   temporal validity.
 - The mart layer exposes Athens-local schedule analytics and canonical programme
   identity through two dimensions, a programme-aware broadcast fact, and a daily
-  daily summary, and historical metrics fact protected by 96 additional tests.
+  daily summaries, historical metrics fact, and enrichment coverage protected by 132
+  additional tests.
 - TMDB searches retain immutable raw responses and typed candidates without silently
   treating API response order as an accepted entity match.
 - Versioned candidate scores make every matched or unresolved identity explainable.

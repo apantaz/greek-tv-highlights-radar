@@ -268,6 +268,7 @@ flowchart LR
     raw_metrics[greek_tv_raw.raw_tmdb_entity_metric_observations] --> metric_facts[greek_tv_marts.fct_tmdb_metrics]
     programmes -->|programme_key| metric_facts
     facts --> daily[greek_tv_marts.mart_daily_channel_schedule]
+    facts --> coverage[greek_tv_marts.mart_daily_enrichment_coverage]
 ```
 
 `dim_channels` has one row per source and channel. `dim_programmes` has one row per
@@ -279,6 +280,9 @@ identity. Unresolved and unenriched observations remain in the fact. The daily m
 aggregates the fact to one source, channel, and requested schedule date.
 `fct_tmdb_metrics` retains one row per immutable metric observation and connects each
 snapshot to its canonical programme for historical popularity and voting analysis.
+`mart_daily_enrichment_coverage` aggregates every broadcast fact by source, channel,
+and requested date, exposing pipeline coverage without hiding schedules that have no
+enrichment yet.
 
 ## Legacy table
 

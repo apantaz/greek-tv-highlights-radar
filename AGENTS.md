@@ -23,6 +23,7 @@ The implemented platform currently:
 12. Publishes confidently matched TMDB identities as a canonical programme dimension.
 13. Connects current broadcasts to nullable canonical programme identity.
 14. Publishes mutable TMDB popularity and voting history as an analytical fact.
+15. Measures enrichment coverage by channel and schedule date.
 
 The roadmap adds dbt enrichment models and a Streamlit analytics application
 incrementally.
