@@ -6,15 +6,15 @@ explainable daily highlights.
 
 ## Current milestone
 
-Version `v0.3.0` completed reliable multi-channel ingestion from
+Version `v0.4.0` delivers the first complete analytics warehouse on top of reliable
+multi-channel ingestion from
 [ProgrammaTileorasis.gr](https://programmatileorasis.gr/). The source catalog is
-discovered at runtime, each channel receives an isolated ingestion run, and partial
-batch failures remain visible without preventing other channels from completing.
+discovered at runtime, ingestion history remains immutable, and dbt transforms the
+latest successful schedules into documented business-facing tables.
 
-The current delivery completes the planned `v0.4.0` analytics warehouse. A channel
-dimension, current-broadcast fact, and daily schedule mart turn the deterministic
-current schedule into documented business-facing tables. The complete dbt graph now
-contains seven models protected by 104 data tests.
+The warehouse includes tested raw and intermediate views, a channel dimension, a
+current-broadcast fact, and a daily schedule mart. The complete dbt graph contains
+seven models protected by 104 data tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -29,10 +29,10 @@ ProgrammaTileorasis.gr
   → channel dimension, broadcast fact, and daily schedule mart
 ```
 
-The current source adapter discovers the free channels advertised by the upstream
-source at runtime and can ingest the complete catalog with isolated per-channel
-failures. dbt transformations, TMDB enrichment, recommendations, and Streamlit follow
-now that the ingestion boundary is reliable.
+The source adapter discovers the free channels advertised by the upstream source at
+runtime and can ingest the complete catalog with isolated per-channel failures. TMDB
+enrichment, recommendations, and Streamlit follow now that the ingestion and
+analytics boundaries are reliable.
 
 ## Quick start
 
