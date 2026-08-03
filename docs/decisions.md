@@ -199,3 +199,15 @@ broadcasts and remains null when no resolution exists, avoiding a misleading zer
 Explicit reconciliation tests protect these definitions. A semantic layer may later
 publish the same governed metrics to multiple consumers, but the local DuckDB and
 single-application scope does not justify making it a runtime dependency yet.
+
+## ADR-023
+Daily highlight ranking is versioned, metric-driven, and fully decomposable.
+
+Ranking version `v1` requires canonical programme identity and a latest metric
+observation. Vote average contributes 70% after linear normalization, vote count
+contributes 20% after base-10 logarithmic normalization, and popularity contributes
+10% after the same bounded logarithmic treatment. Missing individual values contribute
+zero. Schedule time is not treated as quality, and no manual editorial override
+exists. Deterministic tie-breaking uses component scores, schedule time, and
+observation ID. Rankings intentionally reflect the latest available mutable metrics;
+the metric timestamp and policy version make changes across rebuilds explicit.

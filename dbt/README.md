@@ -16,7 +16,8 @@ channel dimension, canonical programme dimension, current-broadcast fact, and da
 schedule mart. The broadcast fact carries nullable canonical programme identity;
 historical TMDB metrics are exposed at immutable observation grain. Enrichment
 coverage is summarized by channel and schedule date. The enrichment-marts milestone
-is complete.
+is complete, and a versioned daily-highlights mart exposes transparent score
+components for the analytics product.
 
 The development target uses `greek_tv` as its base schema. dbt combines that base
 with each model folder's custom schema:

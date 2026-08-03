@@ -1,3 +1,15 @@
+{% docs mart_daily_highlights %}
+
+# Daily highlights mart
+
+One row per eligible current broadcast, ranked within source, channel, and requested
+schedule date. Eligibility requires canonical programme identity and a latest TMDB
+metric observation. Version `v1` weights normalized vote average at 70%, log-scaled
+vote-count confidence at 20%, and log-scaled popularity at 10%. Every component,
+source metric, ranking version, and deterministic tie-break attribute remains visible.
+
+{% enddocs %}
+
 {% docs mart_daily_enrichment_coverage %}
 
 # Daily enrichment coverage mart

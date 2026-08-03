@@ -1,6 +1,157 @@
 version: 2
 
 models:
+  - name: mart_daily_highlights
+    description: "{{ doc('mart_daily_highlights') }}"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [source, channel, schedule_date, highlight_rank]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >-
+              abs(highlight_score - round(
+                0.70 * quality_score
+                + 0.20 * confidence_score
+                + 0.10 * popularity_score,
+                2
+              )) < 0.01
+    columns:
+      - name: observation_id
+        description: "{{ doc('mart_daily_highlights_observation_id') }}"
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('fct_current_broadcasts')
+                field: observation_id
+      - name: channel_key
+        description: "{{ doc('mart_daily_highlights_channel_key') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_channels')
+                field: channel_key
+      - name: programme_key
+        description: "{{ doc('mart_daily_highlights_programme_key') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_programmes')
+                field: programme_key
+      - name: source
+        description: "{{ doc('mart_daily_highlights_source') }}"
+        data_tests: [not_null]
+      - name: channel
+        description: "{{ doc('mart_daily_highlights_channel') }}"
+        data_tests: [not_null]
+      - name: schedule_date
+        description: "{{ doc('mart_daily_highlights_schedule_date') }}"
+        data_tests: [not_null]
+      - name: programme_position
+        description: "{{ doc('mart_daily_highlights_programme_position') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 1}
+      - name: schedule_title
+        description: "{{ doc('mart_daily_highlights_schedule_title') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: starts_at_local
+        description: "{{ doc('mart_daily_highlights_starts_at_local') }}"
+        data_tests: [not_null]
+      - name: programme_title
+        description: "{{ doc('mart_daily_highlights_programme_title') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: original_title
+        description: "{{ doc('mart_daily_highlights_original_title') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: release_year
+        description: "{{ doc('mart_daily_highlights_release_year') }}"
+      - name: imdb_id
+        description: "{{ doc('mart_daily_highlights_imdb_id') }}"
+      - name: genres_json
+        description: "{{ doc('mart_daily_highlights_genres_json') }}"
+        data_tests: [not_null]
+      - name: metric_observation_id
+        description: "{{ doc('mart_daily_highlights_metric_observation_id') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_tmdb_metrics')
+                field: metric_observation_id
+      - name: popularity
+        description: "{{ doc('mart_daily_highlights_popularity') }}"
+      - name: vote_average
+        description: "{{ doc('mart_daily_highlights_vote_average') }}"
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 10
+                row_condition: vote_average is not null
+      - name: vote_count
+        description: "{{ doc('mart_daily_highlights_vote_count') }}"
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                row_condition: vote_count is not null
+      - name: metrics_observed_at
+        description: "{{ doc('mart_daily_highlights_metrics_observed_at') }}"
+        data_tests: [not_null]
+      - name: quality_score
+        description: "{{ doc('mart_daily_highlights_quality_score') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0, max_value: 100}
+      - name: confidence_score
+        description: "{{ doc('mart_daily_highlights_confidence_score') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0, max_value: 100}
+      - name: popularity_score
+        description: "{{ doc('mart_daily_highlights_popularity_score') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0, max_value: 100}
+      - name: highlight_score
+        description: "{{ doc('mart_daily_highlights_highlight_score') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0, max_value: 100}
+      - name: highlight_rank
+        description: "{{ doc('mart_daily_highlights_highlight_rank') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 1}
+      - name: ranking_version
+        description: "{{ doc('mart_daily_highlights_ranking_version') }}"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments: {values: [v1]}
+      - name: ranking_explanation
+        description: "{{ doc('mart_daily_highlights_ranking_explanation') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.not_empty_string
+
   - name: mart_daily_enrichment_coverage
     description: "{{ doc('mart_daily_enrichment_coverage') }}"
     data_tests:

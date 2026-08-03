@@ -24,6 +24,7 @@ The implemented platform currently:
 13. Connects current broadcasts to nullable canonical programme identity.
 14. Publishes mutable TMDB popularity and voting history as an analytical fact.
 15. Measures enrichment coverage by channel and schedule date.
+16. Ranks daily highlights through a versioned and decomposable scoring policy.
 
 The roadmap next adds transparent highlight ranking and a Streamlit analytics
 application incrementally.
