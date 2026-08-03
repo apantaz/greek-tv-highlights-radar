@@ -146,3 +146,13 @@ Popularity and vote counts are excluded because they are mutable and do not prov
 identity. Weak, tied, and missing results persist as unresolved rather than being
 forced into a match. The project intentionally has no manual review or override path,
 keeping execution unattended and reproducible.
+
+## ADR-018
+Batch enrichment is evidence-idempotent, sequential, and failure-isolated.
+
+Distinct current schedule text is reduced to explicit title variants and production
+year evidence. A combination already resolved under the same response language and
+scoring version is skipped, while external search responses are reused through the
+query cache. New requests run sequentially and a title-level failure does not prevent
+later programmes from completing. Unresolved matches count as successful processing;
+only operational failures produce a non-zero command status.

@@ -16,6 +16,7 @@ The implemented platform currently:
 6. Builds tested raw, intermediate, dimensional, fact, and mart models.
 7. Retrieves, caches, and conservatively resolves TMDB candidates from explicit
    schedule evidence.
+8. Enriches distinct current programmes in an idempotent, failure-isolated batch.
 
 The roadmap adds full matched-entity metadata, historical metric snapshots, and a
 Streamlit analytics application incrementally.

@@ -164,6 +164,30 @@ they change over time and do not establish identity. Every component score and f
 reason is retained; unresolved resolution rows keep their accepted `tmdb_id` and
 `media_type` fields null. There is no manual override or review workflow.
 
+## Batch enrichment boundary
+
+The unattended batch reads distinct title-and-description combinations from the
+ingestion-owned `current_broadcasts` view. Equivalent extracted evidence is processed
+once per response language and scoring-policy version. Evidence with an existing
+resolution is skipped; new evidence reuses exact-query caches before making a TMDB
+request.
+
+```text
+distinct current title + description
+  -> extract explicit title variants and production year
+  -> skip equivalent resolved evidence
+  -> cached search or sequential TMDB request
+  -> append lookup context and versioned resolution
+  -> continue after title-level failure
+  -> aggregate matched/unresolved/skipped/failed/cache counts
+```
+
+Processing remains sequential to keep upstream request behavior predictable. An
+optional limit supports controlled incremental runs. Optional channel and requested
+schedule-date filters join current broadcasts back to their ingestion runs before
+evidence is deduplicated. Unresolved identity is a valid outcome; only operational
+failures make the command exit non-zero.
+
 The source website's search menu does not expose an IMDb identifier. Its client-side
 JavaScript constructs a Google query in the form `site:imdb.com <displayed title>`.
 Because that adds no identity evidence and search ranking is external and unstable,
