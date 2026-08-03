@@ -33,11 +33,11 @@
 
 ## Milestone 4 — Enrichment and entity resolution
 
-- Normalize Greek and international titles
-- Retrieve and cache TMDB candidates
-- Score matches with explainable confidence and manual overrides
+- [x] Normalize Greek and international titles deterministically
+- [ ] Retrieve and cache TMDB candidates
+- [ ] Score matches with explainable confidence and manual overrides
 
 ## Milestone 5 — Analytics product
 
-- Rank transparent daily highlights
-- Build archive search and pipeline-status views in Streamlit
+- [ ] Rank transparent daily highlights
+- [ ] Build archive search and pipeline-status views in Streamlit
