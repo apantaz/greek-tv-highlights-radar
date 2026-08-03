@@ -126,6 +126,12 @@ models:
       - dbt_utils.expression_is_true:
           arguments:
             expression: "duration_minutes is null or duration_minutes > 0"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "programme_key is null or resolution_status = 'matched'"
+      - dbt_utils.equal_rowcount:
+          arguments:
+            compare_model: ref('int_current_broadcasts')
     columns:
       - name: observation_id
         description: "{{ doc('fct_current_broadcasts_observation_id') }}"
@@ -149,6 +155,39 @@ models:
               arguments:
                 to: ref('dim_channels')
                 field: channel_key
+      - name: programme_key
+        description: "{{ doc('fct_current_broadcasts_programme_key') }}"
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_programmes')
+                field: programme_key
+      - name: lookup_id
+        description: "{{ doc('fct_current_broadcasts_lookup_id') }}"
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('int_resolved_programmes')
+                field: lookup_id
+      - name: resolution_id
+        description: "{{ doc('fct_current_broadcasts_resolution_id') }}"
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('int_latest_tmdb_resolutions')
+                field: resolution_id
+      - name: resolution_status
+        description: "{{ doc('fct_current_broadcasts_resolution_status') }}"
+        data_tests:
+          - accepted_values:
+              arguments: {values: [matched, unresolved]}
+      - name: tmdb_id
+        description: "{{ doc('fct_current_broadcasts_tmdb_id') }}"
+      - name: media_type
+        description: "{{ doc('fct_current_broadcasts_media_type') }}"
+        data_tests:
+          - accepted_values:
+              arguments: {values: [movie, tv]}
       - name: source
         description: "{{ doc('fct_current_broadcasts_source') }}"
         data_tests: [not_null]

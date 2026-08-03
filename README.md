@@ -16,11 +16,12 @@ latest successful schedules into documented business-facing tables.
 
 The warehouse includes tested ingestion and enrichment raw views, schedule
 intermediate views, a channel dimension, a current-broadcast fact, and a daily
-schedule mart. The complete dbt graph contains 21 models protected by 275 data tests.
+schedule mart. The complete dbt graph contains 21 models protected by 282 data tests.
 
-Current development adds a canonical programme dimension on top of the direct
-broadcast-to-enrichment lineage. The next delivery adds nullable programme identity
-to the current-broadcast fact. The Python suite contains 100 tests.
+Current development connects the current-broadcast fact to the canonical programme
+dimension through direct observation lineage while retaining unresolved broadcasts.
+The next delivery publishes historical TMDB metrics as a fact. The Python suite
+contains 100 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -213,8 +214,8 @@ The ingestion and enrichment tables are declared as documented dbt sources,
 establishing the read-only boundary between Python and SQL transformation. The
 current dbt graph transforms ingestion sources through the complete schedule
 warehouse and projects enrichment sources through tested raw and current-state
-intermediate views. The canonical programme dimension is the first enrichment mart;
-programme-aware broadcast and historical metric facts follow.
+intermediate views. The canonical programme dimension and programme-aware broadcast
+fact are available; the historical metric fact follows.
 
 Run dbt directly from its project directory:
 
@@ -373,8 +374,9 @@ order by media_type, tmdb_id, observed_at;
 - The intermediate layer derives schedule and enrichment current state
   deterministically and adds 84 tests for grain, lineage, required attributes, and
   temporal validity.
-- The mart layer exposes Athens-local schedule analytics through a channel dimension,
-  programme fact, and daily summary protected by 52 additional tests.
+- The mart layer exposes Athens-local schedule analytics and canonical programme
+  identity through two dimensions, a programme-aware broadcast fact, and a daily
+  summary protected by 80 additional tests.
 - TMDB searches retain immutable raw responses and typed candidates without silently
   treating API response order as an accepted entity match.
 - Versioned candidate scores make every matched or unresolved identity explainable.

@@ -25,7 +25,8 @@ joining business-facing broadcast models.
 
 One row per programme observation in the latest successful schedule for a source,
 channel, and requested date. The fact adds Athens-local timestamps, duration,
-midnight-crossing behavior, and deterministic schedule position.
+midnight-crossing behavior, deterministic schedule position, and nullable canonical
+programme identity. Unresolved and unenriched broadcasts remain in the fact.
 
 {% enddocs %}
 

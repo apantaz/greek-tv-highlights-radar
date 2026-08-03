@@ -126,6 +126,30 @@ Latest successful ingestion run that produced the programme observation.
 Foreign key to the channel dimension.
 {% enddocs %}
 
+{% docs fct_current_broadcasts_programme_key %}
+Nullable foreign key to the canonical programme dimension when matched metadata exists.
+{% enddocs %}
+
+{% docs fct_current_broadcasts_lookup_id %}
+Nullable enrichment lookup evaluated for the exact broadcast observation.
+{% enddocs %}
+
+{% docs fct_current_broadcasts_resolution_id %}
+Nullable latest resolution associated with the broadcast's enrichment lookup.
+{% enddocs %}
+
+{% docs fct_current_broadcasts_resolution_status %}
+Matched or unresolved outcome; null when the broadcast has not been enriched.
+{% enddocs %}
+
+{% docs fct_current_broadcasts_tmdb_id %}
+Nullable TMDB identifier accepted for a confidently matched broadcast.
+{% enddocs %}
+
+{% docs fct_current_broadcasts_media_type %}
+Nullable TMDB namespace, movie or television, for the accepted identity.
+{% enddocs %}
+
 {% docs fct_current_broadcasts_source %}
 Upstream schedule source associated with the programme.
 {% enddocs %}

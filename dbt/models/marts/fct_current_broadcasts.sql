@@ -57,6 +57,12 @@ select
     enriched.broadcast_id,
     enriched.run_id,
     channels.channel_key,
+    programmes.programme_key,
+    enrichment.lookup_id,
+    enrichment.resolution_id,
+    enrichment.resolution_status,
+    enrichment.tmdb_id,
+    enrichment.media_type,
     enriched.source,
     enriched.channel,
     enriched.schedule_date,
@@ -77,3 +83,8 @@ from enriched
 inner join {{ ref('dim_channels') }} as channels
     on enriched.source = channels.source
     and enriched.channel = channels.channel
+left join {{ ref('int_current_broadcast_enrichment') }} as enrichment
+    on enriched.observation_id = enrichment.observation_id
+left join {{ ref('dim_programmes') }} as programmes
+    on enrichment.media_type = programmes.media_type
+    and enrichment.tmdb_id = programmes.tmdb_id
