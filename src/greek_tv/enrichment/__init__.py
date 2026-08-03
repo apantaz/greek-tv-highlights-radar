@@ -1,5 +1,12 @@
 """Programme metadata enrichment and entity-resolution helpers."""
 
+from greek_tv.enrichment.entities import CachedTmdbEntity, TmdbEntityRepository
+from greek_tv.enrichment.entity_batch import (
+    BatchEntityEnrichmentResult,
+    EntityEnrichmentResult,
+    EntityEnrichmentStatus,
+    enrich_matched_entities,
+)
 from greek_tv.enrichment.evidence import TitleEvidence, extract_title_evidence
 from greek_tv.enrichment.repository import (
     CachedTmdbSearch,
@@ -15,11 +22,20 @@ from greek_tv.enrichment.resolution import (
     resolve_candidates,
 )
 from greek_tv.enrichment.titles import NormalizedTitle, normalize_title
-from greek_tv.enrichment.tmdb import TmdbCandidate, TmdbClient, TmdbSearchResponse
+from greek_tv.enrichment.tmdb import (
+    TmdbCandidate,
+    TmdbClient,
+    TmdbEntityDetails,
+    TmdbSearchResponse,
+)
 
 __all__ = [
+    "BatchEntityEnrichmentResult",
+    "CachedTmdbEntity",
     "CachedTmdbSearch",
     "CandidateScore",
+    "EntityEnrichmentResult",
+    "EntityEnrichmentStatus",
     "NormalizedTitle",
     "PersistedTmdbResolution",
     "Resolution",
@@ -29,8 +45,11 @@ __all__ = [
     "TmdbCandidate",
     "TmdbCandidateRepository",
     "TmdbClient",
+    "TmdbEntityDetails",
+    "TmdbEntityRepository",
     "TmdbLookupContext",
     "TmdbSearchResponse",
+    "enrich_matched_entities",
     "extract_title_evidence",
     "normalize_title",
     "resolve_candidates",

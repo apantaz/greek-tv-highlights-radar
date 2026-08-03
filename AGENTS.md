@@ -17,9 +17,10 @@ The implemented platform currently:
 7. Retrieves, caches, and conservatively resolves TMDB candidates from explicit
    schedule evidence.
 8. Enriches distinct current programmes in an idempotent, failure-isolated batch.
+9. Retrieves and caches full metadata only for confidently matched TMDB identities.
 
-The roadmap adds full matched-entity metadata, historical metric snapshots, and a
-Streamlit analytics application incrementally.
+The roadmap adds historical metric snapshots, dbt enrichment models, and a Streamlit
+analytics application incrementally.
 
 The project is intentionally designed as a production-quality portfolio that demonstrates modern Analytics Engineering and Data Engineering practices.
 

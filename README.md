@@ -17,9 +17,8 @@ The warehouse includes tested raw and intermediate views, a channel dimension, a
 current-broadcast fact, and a daily schedule mart. The complete dbt graph contains
 seven models protected by 104 data tests.
 
-Current development adds unattended, idempotent batch enrichment across distinct
-current programmes, with optional channel and schedule-date filters. The Python suite
-contains 87 tests.
+Current development adds unattended, idempotent batch enrichment and full metadata
+retrieval for confidently matched entities. The Python suite contains 92 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -120,6 +119,25 @@ run therefore performs no TMDB requests for unchanged processed evidence. The co
 exits with status `1` only when operational failures occur; unresolved identities are
 valid data outcomes. Channel matching is case-insensitive, and the date refers to the
 requested ingestion schedule date rather than timestamps after midnight rollover.
+
+Retrieve complete metadata for every confidently matched identity:
+
+```bash
+greek-tv enrich-entities
+```
+
+The command processes distinct accepted `(media_type, tmdb_id)` pairs and caches
+results by identity and response language. It never retrieves details for unresolved
+programmes. Repeated runs reuse the local cache without creating API requests; use
+`--limit 10` for a controlled run, `--language en-US` for another response language,
+or `--refresh` to append fresh source evidence. One failed identity does not stop the
+remaining batch, and any operational failure produces exit status `1`.
+
+Stable normalized columns include titles, overview, dates, runtime, genres,
+production countries and companies, spoken languages, homepage, status, and the
+IMDb ID supplied directly by TMDB. The complete response is retained for audit.
+Mutable popularity and voting metrics are intentionally excluded from these columns;
+they will be modeled as timestamped observations in the next delivery.
 
 ## Quick start
 
@@ -273,6 +291,23 @@ qualify row_number() over (
     order by resolutions.resolved_at desc
 ) = 1
 order by contexts.created_at desc;
+
+select
+    media_type,
+    tmdb_id,
+    language,
+    title,
+    original_title,
+    release_date,
+    runtime_minutes,
+    imdb_id,
+    genres_json
+from tmdb_entity_details
+qualify row_number() over (
+    partition by media_type, tmdb_id, language
+    order by retrieved_at desc, entity_detail_id desc
+) = 1
+order by media_type, title;
 ```
 
 ## Engineering properties
@@ -303,6 +338,8 @@ order by contexts.created_at desc;
 - Versioned candidate scores make every matched or unresolved identity explainable.
 - Batch enrichment is cache-aware, evidence-idempotent, filterable, and isolates
   programme-level failures.
+- Full entity metadata is retrieved only for accepted matches and cached by stable
+  TMDB identity and response language.
 - CI runs Ruff, pytest, and dbt foundation validation on every pull request and push
   to `main`.
 
@@ -315,11 +352,10 @@ immediately addressable by source ID or a `channel-<id>` fallback slug. The upst
 HTML is an external contract and may change; structural and quality failures are
 recorded and fail loudly rather than silently storing incomplete data.
 
-TMDB enrichment currently retains search responses, candidate metadata, scoring
-evidence, and conservative resolution outcomes. Full entity details such as genres,
-runtime, production companies, credits, and external IDs are not fetched yet.
-Changing vote, count, and popularity metrics will be stored as timestamped snapshots
-rather than overwriting history.
+TMDB enrichment retains search responses, candidate metadata, scoring evidence,
+conservative resolution outcomes, and full details for accepted entities. Credits
+are not fetched yet. Changing vote, count, and popularity metrics will be stored as
+timestamped snapshots rather than overwriting history.
 
 See the [data model and ERD](docs/data-model.md),
 [architecture](docs/architecture.md), [decisions](docs/decisions.md), and the
