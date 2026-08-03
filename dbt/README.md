@@ -10,10 +10,10 @@ The separate `version` property is dbt project metadata and does not select the 
 Core runtime.
 
 The project declares two ingestion relations and seven enrichment relations as dbt
-sources. The current graph projects the ingestion sources into tested raw views,
-derives the latest successful schedule through intermediate views, and publishes a
-channel dimension, current-broadcast fact, and daily schedule mart. Transformations
-for matched enrichment metadata are planned for Milestone 5.
+sources. The current graph projects all nine sources into tested raw views, derives
+the latest successful schedule through intermediate views, and publishes a channel
+dimension, current-broadcast fact, and daily schedule mart. Intermediate models for
+resolved enrichment metadata are the next Milestone 5 delivery.
 
 The development target uses `greek_tv` as its base schema. dbt combines that base
 with each model folder's custom schema:
@@ -83,6 +83,12 @@ Build the raw layer and its source-boundary tests with:
 dbt build --select path:models/raw
 ```
 
+Build only enrichment-tagged raw models and their tests with:
+
+```bash
+dbt build --select tag:enrichment
+```
+
 Build the intermediate layer together with its upstream raw dependencies:
 
 ```bash
@@ -104,6 +110,7 @@ roles are declared in the relevant model config. Tags are additive: for example,
 | Tag | Scope |
 | --- | --- |
 | `raw` | Source-aligned raw models |
+| `enrichment` | Models derived from TMDB enrichment sources |
 | `intermediate` | Reusable transformation models |
 | `marts` | Business-facing models |
 | `dimension` | Dimension models |
