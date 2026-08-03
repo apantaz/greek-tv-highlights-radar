@@ -59,6 +59,9 @@ class TmdbEntityDetails:
     production_countries: tuple[str, ...]
     production_companies: tuple[str, ...]
     spoken_languages: tuple[str, ...]
+    popularity: float | None
+    vote_average: float | None
+    vote_count: int | None
     payload: dict
 
 
@@ -262,6 +265,9 @@ def _parse_entity_details(
         production_countries=_named_values(payload.get("production_countries"), "iso_3166_1"),
         production_companies=_named_values(payload.get("production_companies"), "name"),
         spoken_languages=_named_values(payload.get("spoken_languages"), "iso_639_1"),
+        popularity=_optional_float(payload.get("popularity")),
+        vote_average=_optional_float(payload.get("vote_average")),
+        vote_count=_optional_int(payload.get("vote_count")),
         payload=payload,
     )
 

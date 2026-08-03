@@ -20,6 +20,20 @@ class CachedTmdbEntity:
     details: TmdbEntityDetails
 
 
+@dataclass(frozen=True, slots=True)
+class TmdbMetricObservation:
+    """One historical observation of mutable TMDB entity metrics."""
+
+    metric_observation_id: str
+    entity_detail_id: str
+    tmdb_id: int
+    media_type: str
+    popularity: float | None
+    vote_average: float | None
+    vote_count: int | None
+    observed_at: datetime
+
+
 class TmdbEntityRepository:
     """Persist and reuse details for accepted movie and television identities."""
 
@@ -54,6 +68,45 @@ class TmdbEntityRepository:
                     response_json json not null,
                     check (media_type in ('movie', 'tv')),
                     check (runtime_minutes is null or runtime_minutes >= 0)
+                )
+                """
+            )
+            connection.execute(
+                """
+                create table if not exists tmdb_entity_metric_observations (
+                    metric_observation_id varchar primary key,
+                    entity_detail_id varchar not null,
+                    tmdb_id integer not null,
+                    media_type varchar not null,
+                    popularity double,
+                    vote_average double,
+                    vote_count integer,
+                    observed_at timestamptz not null,
+                    foreign key (entity_detail_id)
+                        references tmdb_entity_details(entity_detail_id),
+                    check (media_type in ('movie', 'tv')),
+                    check (vote_average is null or vote_average between 0 and 10),
+                    check (vote_count is null or vote_count >= 0)
+                )
+                """
+            )
+            connection.execute(
+                """
+                insert into tmdb_entity_metric_observations
+                select
+                    md5(details.entity_detail_id || ':metrics'),
+                    details.entity_detail_id,
+                    details.tmdb_id,
+                    details.media_type,
+                    try_cast(json_extract(details.response_json, '$.popularity') as double),
+                    try_cast(json_extract(details.response_json, '$.vote_average') as double),
+                    try_cast(json_extract(details.response_json, '$.vote_count') as integer),
+                    details.retrieved_at
+                from tmdb_entity_details as details
+                where not exists (
+                    select 1
+                    from tmdb_entity_metric_observations as observations
+                    where observations.entity_detail_id = details.entity_detail_id
                 )
                 """
             )
@@ -98,6 +151,9 @@ class TmdbEntityRepository:
             production_countries=tuple(json.loads(row[15])),
             production_companies=tuple(json.loads(row[16])),
             spoken_languages=tuple(json.loads(row[17])),
+            popularity=_optional_float_from_payload(row[19], "popularity"),
+            vote_average=_optional_float_from_payload(row[19], "vote_average"),
+            vote_count=_optional_int_from_payload(row[19], "vote_count"),
             payload=json.loads(row[19]),
         )
         return CachedTmdbEntity(row[0], row[18], details)
@@ -113,37 +169,90 @@ class TmdbEntityRepository:
             raise ValueError("TMDB entity retrieval timestamp must be timezone-aware")
         self.initialize()
         entity_detail_id = str(uuid4())
+        metric_observation_id = str(uuid4())
         with duckdb.connect(str(self.path)) as connection:
-            connection.execute(
-                """
-                insert into tmdb_entity_details values (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            connection.begin()
+            try:
+                connection.execute(
+                    """
+                    insert into tmdb_entity_details values (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    )
+                    """,
+                    [
+                        entity_detail_id,
+                        details.tmdb_id,
+                        details.media_type,
+                        details.language,
+                        details.title,
+                        details.original_title,
+                        details.original_language,
+                        details.release_date,
+                        details.overview,
+                        details.tagline,
+                        details.runtime_minutes,
+                        details.status,
+                        details.homepage,
+                        details.imdb_id,
+                        json.dumps(details.genres, ensure_ascii=False),
+                        json.dumps(details.production_countries, ensure_ascii=False),
+                        json.dumps(details.production_companies, ensure_ascii=False),
+                        json.dumps(details.spoken_languages, ensure_ascii=False),
+                        retrieved_at,
+                        json.dumps(details.payload, ensure_ascii=False),
+                    ],
                 )
-                """,
-                [
-                    entity_detail_id,
-                    details.tmdb_id,
-                    details.media_type,
-                    details.language,
-                    details.title,
-                    details.original_title,
-                    details.original_language,
-                    details.release_date,
-                    details.overview,
-                    details.tagline,
-                    details.runtime_minutes,
-                    details.status,
-                    details.homepage,
-                    details.imdb_id,
-                    json.dumps(details.genres, ensure_ascii=False),
-                    json.dumps(details.production_countries, ensure_ascii=False),
-                    json.dumps(details.production_companies, ensure_ascii=False),
-                    json.dumps(details.spoken_languages, ensure_ascii=False),
-                    retrieved_at,
-                    json.dumps(details.payload, ensure_ascii=False),
-                ],
-            )
+                connection.execute(
+                    """
+                    insert into tmdb_entity_metric_observations
+                    values (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    [
+                        metric_observation_id,
+                        entity_detail_id,
+                        details.tmdb_id,
+                        details.media_type,
+                        details.popularity,
+                        details.vote_average,
+                        details.vote_count,
+                        retrieved_at,
+                    ],
+                )
+                connection.commit()
+            except Exception:
+                connection.rollback()
+                raise
         return CachedTmdbEntity(entity_detail_id, retrieved_at, details)
+
+    def latest_metric(self, media_type: str, tmdb_id: int) -> TmdbMetricObservation | None:
+        """Return the newest mutable-metric observation for one entity."""
+        self.initialize()
+        with duckdb.connect(str(self.path), read_only=True) as connection:
+            row = connection.execute(
+                """
+                select
+                    metric_observation_id, entity_detail_id, tmdb_id, media_type,
+                    popularity, vote_average, vote_count, observed_at
+                from tmdb_entity_metric_observations
+                where media_type = ? and tmdb_id = ?
+                order by observed_at desc, metric_observation_id desc
+                limit 1
+                """,
+                [media_type, tmdb_id],
+            ).fetchone()
+        return TmdbMetricObservation(*row) if row else None
+
+    def detailed_identities(self) -> list[tuple[str, int]]:
+        """Return distinct identities that have passed matched-detail retrieval."""
+        self.initialize()
+        with duckdb.connect(str(self.path), read_only=True) as connection:
+            return connection.execute(
+                """
+                select distinct media_type, tmdb_id
+                from tmdb_entity_details
+                order by media_type, tmdb_id
+                """
+            ).fetchall()
 
     def matched_identities(self) -> list[tuple[str, int]]:
         """Return distinct identities accepted by any resolution run."""
@@ -160,3 +269,13 @@ class TmdbEntityRepository:
                 """
             ).fetchall()
         return rows
+
+
+def _optional_float_from_payload(payload: str, key: str) -> float | None:
+    value = json.loads(payload).get(key)
+    return float(value) if isinstance(value, int | float) else None
+
+
+def _optional_int_from_payload(payload: str, key: str) -> int | None:
+    value = json.loads(payload).get(key)
+    return value if isinstance(value, int) else None

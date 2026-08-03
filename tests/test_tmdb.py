@@ -150,6 +150,9 @@ def test_retrieves_and_parses_matched_movie_details():
     assert details.production_countries == ("US",)
     assert details.production_companies == ("Lucasfilm",)
     assert details.spoken_languages == ("en",)
+    assert details.popularity == 99.0
+    assert details.vote_average == 8.2
+    assert details.vote_count == 21000
 
 
 def test_rejects_blank_token_and_query():
@@ -228,7 +231,39 @@ def test_persists_and_reuses_matched_entity_details(tmp_path):
     assert cached == saved
     assert cached is not None
     assert cached.details.payload == response
+    metric = repository.latest_metric("movie", 11)
+    assert metric is not None
+    assert metric.entity_detail_id == saved.entity_detail_id
+    assert metric.popularity == 99.0
+    assert metric.vote_average == 8.2
+    assert metric.vote_count == 21000
     assert repository.latest("movie", 11, "el-GR") is None
+
+
+def test_backfills_metrics_from_existing_entity_response(tmp_path):
+    path = tmp_path / "tmdb.duckdb"
+    response = entity_payload()
+    client = TmdbClient(
+        "token",
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, request=request, json=response)
+        ),
+    )
+    repository = TmdbEntityRepository(path)
+    saved = repository.save(
+        client.details("movie", 11),
+        datetime(2026, 8, 3, 12, tzinfo=UTC),
+    )
+    with duckdb.connect(str(path)) as connection:
+        connection.execute("delete from tmdb_entity_metric_observations")
+
+    repository.initialize()
+
+    metric = repository.latest_metric("movie", 11)
+    assert metric is not None
+    assert metric.entity_detail_id == saved.entity_detail_id
+    assert metric.popularity == 99.0
+    assert metric.observed_at == saved.retrieved_at
 
 
 def test_records_source_evidence_separately_from_reusable_search_cache(tmp_path):
