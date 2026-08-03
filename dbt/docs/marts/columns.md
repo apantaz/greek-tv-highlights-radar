@@ -1,3 +1,21 @@
+{% docs mart_daily_enrichment_coverage_channel_key %}Foreign key to the channel dimension.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_source %}Upstream schedule source measured by the row.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_channel %}Channel measured by the row.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_schedule_date %}Requested schedule date measured by the row.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_programme_count %}All current broadcast observations in the schedule.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_submitted %}Broadcasts linked to an enrichment lookup.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_resolved %}Broadcasts with a persisted matched or unresolved decision.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_matched %}Broadcasts confidently matched to a TMDB identity.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_unresolved %}Broadcasts deliberately left unresolved by the scoring policy.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_canonical %}Broadcasts linked to a canonical programme with retrieved metadata.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_missing %}Broadcasts not yet linked to an enrichment lookup.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_missing_metadata %}Matched broadcasts awaiting canonical entity metadata.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_enrichment_pct %}Percentage of all broadcasts linked to enrichment lookups.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_resolution_pct %}Percentage of all broadcasts with persisted resolution decisions.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_match_pct %}Percentage of resolved broadcasts that matched confidently; null without resolutions.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_canonical_pct %}Percentage of all broadcasts carrying canonical programme identity.{% enddocs %}
+{% docs mart_daily_enrichment_coverage_ingestion_completed_at %}Completion timestamp of the successful ingestion represented by the schedule.{% enddocs %}
+
 {% docs fct_tmdb_metrics_metric_observation_id %}
 Primary key of the immutable point-in-time metric observation.
 {% enddocs %}
