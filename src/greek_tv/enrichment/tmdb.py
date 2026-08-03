@@ -9,6 +9,7 @@ import httpx
 
 TMDB_SEARCH_URL = "https://api.themoviedb.org/3/search/multi"
 TMDB_API_ROOT = "https://api.themoviedb.org/3"
+TMDB_AUTHENTICATION_URL = f"{TMDB_API_ROOT}/authentication"
 RETRYABLE_STATUS_CODES = frozenset({408, 429, 500, 502, 503, 504})
 
 
@@ -83,6 +84,21 @@ class TmdbClient:
         self.backoff_seconds = backoff_seconds
         self.transport = transport
         self.sleep = sleep
+
+    def validate_access_token(self) -> None:
+        """Validate the configured read-access token without retrieving domain data."""
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Accept": "application/json",
+            "User-Agent": "greek-tv-highlights-radar/0.6 (+public research project)",
+        }
+        with httpx.Client(
+            timeout=self.timeout,
+            headers=headers,
+            transport=self.transport,
+        ) as client:
+            response = client.get(TMDB_AUTHENTICATION_URL)
+            response.raise_for_status()
 
     def search(self, query: str, language: str = "el-GR") -> TmdbSearchResponse:
         """Return movie and TV candidates for a non-blank normalized title."""

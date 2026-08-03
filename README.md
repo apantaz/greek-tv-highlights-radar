@@ -56,6 +56,17 @@ one source title:
 
 ```bash
 export TMDB_API_TOKEN="your-read-access-token"
+greek-tv tmdb-check
+```
+
+A valid token prints `TMDB connection OK: read-access token is valid`. A missing,
+invalid, or unreachable configuration exits with status `1` and a concise diagnostic
+without writing to DuckDB. The command calls TMDB's dedicated authentication
+validation endpoint, making it suitable for setup checks and fast debugging.
+
+Then retrieve candidates for one source title:
+
+```bash
 greek-tv tmdb-search \
   --title "Ο Χάρι Πότερ (Harry Potter and the Order of the Phoenix)" \
   --description "Αμερικανικής παραγωγής 2007."
