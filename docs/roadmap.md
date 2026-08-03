@@ -1,7 +1,8 @@
 # Roadmap
 
-The latest published release is `v0.5.0`. Current development adds unattended batch
-orchestration and cached full metadata for confidently matched entities.
+The `v0.6.0` release adds unattended batch orchestration and cached full metadata for
+confidently matched entities. Historical metric snapshots and dbt enrichment models
+are the next deliveries.
 
 ## Milestone 1 — ERT1 vertical slice
 
@@ -40,7 +41,7 @@ orchestration and cached full metadata for confidently matched entities.
 - [x] Retrieve and cache TMDB candidates with immutable raw responses
 - [x] Score candidates with conservative automatic resolution and unresolved outcomes
 
-## Milestone 5 — Matched entity metadata
+## Milestone 5 — Matched entity metadata (`v0.6.0`)
 
 - [x] Automate idempotent batch enrichment across distinct current programmes
 - [x] Retrieve full details only for confidently matched TMDB entities

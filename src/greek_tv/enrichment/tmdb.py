@@ -93,7 +93,7 @@ class TmdbClient:
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Accept": "application/json",
-            "User-Agent": "greek-tv-highlights-radar/0.5 (+public research project)",
+            "User-Agent": "greek-tv-highlights-radar/0.6 (+public research project)",
         }
         params = {
             "query": query,
@@ -143,7 +143,7 @@ class TmdbClient:
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Accept": "application/json",
-            "User-Agent": "greek-tv-highlights-radar/0.5 (+public research project)",
+            "User-Agent": "greek-tv-highlights-radar/0.6 (+public research project)",
         }
         params = {"language": language, "append_to_response": "external_ids"}
         url = f"{TMDB_API_ROOT}/{media_type}/{tmdb_id}"
