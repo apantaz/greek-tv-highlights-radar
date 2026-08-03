@@ -1,4 +1,4 @@
-"""Typed TMDB candidate retrieval without automatic entity selection."""
+"""Typed TMDB candidate and matched-entity retrieval."""
 
 import time
 from collections.abc import Callable
@@ -8,6 +8,7 @@ from datetime import date
 import httpx
 
 TMDB_SEARCH_URL = "https://api.themoviedb.org/3/search/multi"
+TMDB_API_ROOT = "https://api.themoviedb.org/3"
 RETRYABLE_STATUS_CODES = frozenset({408, 429, 500, 502, 503, 504})
 
 
@@ -34,6 +35,30 @@ class TmdbSearchResponse:
 
     payload: dict
     candidates: tuple[TmdbCandidate, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class TmdbEntityDetails:
+    """Stable metadata parsed from one matched movie or television entity."""
+
+    tmdb_id: int
+    media_type: str
+    language: str
+    title: str
+    original_title: str
+    original_language: str | None
+    release_date: date | None
+    overview: str | None
+    tagline: str | None
+    runtime_minutes: int | None
+    status: str | None
+    homepage: str | None
+    imdb_id: str | None
+    genres: tuple[str, ...]
+    production_countries: tuple[str, ...]
+    production_companies: tuple[str, ...]
+    spoken_languages: tuple[str, ...]
+    payload: dict
 
 
 class TmdbClient:
@@ -68,7 +93,7 @@ class TmdbClient:
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Accept": "application/json",
-            "User-Agent": "greek-tv-highlights-radar/0.4 (+public research project)",
+            "User-Agent": "greek-tv-highlights-radar/0.5 (+public research project)",
         }
         params = {
             "query": query,
@@ -104,6 +129,49 @@ class TmdbClient:
 
         raise RuntimeError("TMDB search exhausted without a response")
 
+    def details(
+        self,
+        media_type: str,
+        tmdb_id: int,
+        language: str = "el-GR",
+    ) -> TmdbEntityDetails:
+        """Retrieve stable details for one confidently matched movie or TV entity."""
+        if media_type not in {"movie", "tv"}:
+            raise ValueError("TMDB media type must be 'movie' or 'tv'")
+        if tmdb_id < 1:
+            raise ValueError("TMDB ID must be positive")
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Accept": "application/json",
+            "User-Agent": "greek-tv-highlights-radar/0.5 (+public research project)",
+        }
+        params = {"language": language, "append_to_response": "external_ids"}
+        url = f"{TMDB_API_ROOT}/{media_type}/{tmdb_id}"
+        with httpx.Client(
+            timeout=self.timeout,
+            headers=headers,
+            transport=self.transport,
+        ) as client:
+            for attempt in range(1, self.max_attempts + 1):
+                try:
+                    response = client.get(url, params=params)
+                except httpx.TransportError:
+                    if attempt == self.max_attempts:
+                        raise
+                    self._backoff(attempt)
+                    continue
+                if response.status_code in RETRYABLE_STATUS_CODES:
+                    if attempt == self.max_attempts:
+                        response.raise_for_status()
+                    self._backoff(attempt)
+                    continue
+                response.raise_for_status()
+                payload = response.json()
+                if not isinstance(payload, dict):
+                    raise ValueError("TMDB details response must be an object")
+                return _parse_entity_details(payload, media_type, language, tmdb_id)
+        raise RuntimeError("TMDB details retrieval exhausted without a response")
+
     def _backoff(self, attempt: int) -> None:
         self.sleep(self.backoff_seconds * (2 ** (attempt - 1)))
 
@@ -137,6 +205,59 @@ def _parse_candidates(results: list) -> tuple[TmdbCandidate, ...]:
             )
         )
     return tuple(candidates)
+
+
+def _parse_entity_details(
+    payload: dict,
+    media_type: str,
+    language: str,
+    expected_tmdb_id: int,
+) -> TmdbEntityDetails:
+    tmdb_id = payload.get("id")
+    title_key = "title" if media_type == "movie" else "name"
+    original_title_key = "original_title" if media_type == "movie" else "original_name"
+    release_date_key = "release_date" if media_type == "movie" else "first_air_date"
+    title = _optional_text(payload.get(title_key))
+    if tmdb_id != expected_tmdb_id or title is None:
+        raise ValueError("TMDB details response has an invalid identity")
+    runtime = payload.get("runtime")
+    if media_type == "tv":
+        episode_runtimes = payload.get("episode_run_time")
+        runtime = (
+            episode_runtimes[0] if isinstance(episode_runtimes, list) and episode_runtimes else None
+        )
+    external_ids = payload.get("external_ids")
+    external_imdb_id = external_ids.get("imdb_id") if isinstance(external_ids, dict) else None
+    return TmdbEntityDetails(
+        tmdb_id=tmdb_id,
+        media_type=media_type,
+        language=language,
+        title=title,
+        original_title=_optional_text(payload.get(original_title_key)) or title,
+        original_language=_optional_text(payload.get("original_language")),
+        release_date=_optional_date(payload.get(release_date_key)),
+        overview=_optional_text(payload.get("overview")),
+        tagline=_optional_text(payload.get("tagline")),
+        runtime_minutes=_optional_int(runtime),
+        status=_optional_text(payload.get("status")),
+        homepage=_optional_text(payload.get("homepage")),
+        imdb_id=_optional_text(payload.get("imdb_id")) or _optional_text(external_imdb_id),
+        genres=_named_values(payload.get("genres"), "name"),
+        production_countries=_named_values(payload.get("production_countries"), "iso_3166_1"),
+        production_companies=_named_values(payload.get("production_companies"), "name"),
+        spoken_languages=_named_values(payload.get("spoken_languages"), "iso_639_1"),
+        payload=payload,
+    )
+
+
+def _named_values(value: object, key: str) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        return ()
+    return tuple(
+        text
+        for item in value
+        if isinstance(item, dict) and (text := _optional_text(item.get(key))) is not None
+    )
 
 
 def _optional_text(value: object) -> str | None:

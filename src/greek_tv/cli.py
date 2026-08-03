@@ -20,6 +20,11 @@ from greek_tv.enrichment.batch import (
     BatchEnrichmentStatus,
     enrich_current_programmes,
 )
+from greek_tv.enrichment.entity_batch import (
+    BatchEntityEnrichmentResult,
+    EntityEnrichmentStatus,
+    enrich_matched_entities,
+)
 from greek_tv.enrichment.service import enrich_title
 from greek_tv.ingestion.batch import BatchIngestionResult, ingest_all_schedules
 from greek_tv.logger import configure_logging
@@ -55,6 +60,13 @@ def build_parser() -> argparse.ArgumentParser:
     enrich.add_argument("--limit", type=_positive_int)
     enrich.add_argument("--channel")
     enrich.add_argument("--date", type=date.fromisoformat, metavar="YYYY-MM-DD")
+    enrich_entities = commands.add_parser(
+        "enrich-entities",
+        help="retrieve full metadata for confidently matched TMDB identities",
+    )
+    enrich_entities.add_argument("--language", default="el-GR")
+    enrich_entities.add_argument("--limit", type=_positive_int)
+    enrich_entities.add_argument("--refresh", action="store_true")
     return parser
 
 
@@ -74,6 +86,18 @@ def main() -> None:
             schedule_date=args.date,
         )
         _print_enrichment_summary(result)
+        if result.failed:
+            raise SystemExit(1)
+        return
+    if args.command == "enrich-entities":
+        result = enrich_matched_entities(
+            database_path(),
+            language=args.language,
+            client_factory=_tmdb_client,
+            limit=args.limit,
+            refresh=args.refresh,
+        )
+        _print_entity_enrichment_summary(result)
         if result.failed:
             raise SystemExit(1)
         return
@@ -142,6 +166,19 @@ def _print_batch_summary(result: BatchIngestionResult) -> None:
             else item.error_message
         )
         print(f"{item.channel.slug:<16} {item.status.value:<9} {detail}")
+
+
+def _print_entity_enrichment_summary(result: BatchEntityEnrichmentResult) -> None:
+    print(
+        f"total={result.total} "
+        f"retrieved={result.count(EntityEnrichmentStatus.RETRIEVED)} "
+        f"cached={result.count(EntityEnrichmentStatus.CACHED)} "
+        f"failed={result.failed}"
+    )
+    print()
+    for item in result.entities:
+        detail = item.error_message or ""
+        print(f"{item.media_type:<5} {item.tmdb_id:<8} {item.status.value:<9} {detail}")
 
 
 def _search_tmdb(

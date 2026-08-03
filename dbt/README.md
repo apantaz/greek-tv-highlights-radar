@@ -9,7 +9,7 @@ The project requires dbt Core `>=1.12.0,<1.13.0`. This constraint is declared th
 The separate `version` property is dbt project metadata and does not select the dbt
 Core runtime.
 
-The project declares two ingestion relations and five enrichment relations as dbt
+The project declares two ingestion relations and six enrichment relations as dbt
 sources. The current graph projects the ingestion sources into tested raw views,
 derives the latest successful schedule through intermediate views, and publishes a
 channel dimension, current-broadcast fact, and daily schedule mart. Transformations

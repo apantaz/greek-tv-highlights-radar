@@ -157,3 +157,14 @@ scoring version is skipped, while external search responses are reused through t
 query cache. New requests run sequentially and a title-level failure does not prevent
 later programmes from completing. Unresolved matches count as successful processing;
 only operational failures produce a non-zero command status.
+
+## ADR-019
+Full metadata retrieval is gated by accepted identity and cached append-only.
+
+Only matched resolutions may produce detail requests. The stable cache key combines
+media type, TMDB ID, and response language because numeric IDs are interpreted within
+an entity type and descriptive text can be localized. Complete responses are retained
+for audit, while normalized columns expose stable descriptive attributes. Popularity,
+vote average, and vote count are excluded from those columns because they are mutable;
+they require a separate timestamped observation model. Retrieval is sequential and
+failure-isolated, and refreshes append evidence rather than replacing it.

@@ -80,6 +80,16 @@ def test_enrich_parser_exposes_language_and_incremental_limit():
     assert args.date == date(2026, 8, 1)
 
 
+def test_enrich_entities_parser_exposes_cache_controls():
+    args = cli.build_parser().parse_args(
+        ["enrich-entities", "--language", "en-US", "--limit", "5", "--refresh"]
+    )
+
+    assert args.language == "en-US"
+    assert args.limit == 5
+    assert args.refresh is True
+
+
 def batch_result(*, failed: bool) -> BatchIngestionResult:
     results = [
         ChannelIngestionResult(

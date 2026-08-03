@@ -189,6 +189,29 @@ schedule-date filters join current broadcasts back to their ingestion runs befor
 evidence is deduplicated. Unresolved identity is a valid outcome; only operational
 failures make the command exit non-zero.
 
+## Matched-entity metadata boundary
+
+Full details are requested only for distinct `(media_type, tmdb_id)` identities from
+matched resolution rows. Unresolved outcomes cannot enter this stage. The response
+language completes the exact cache identity, allowing localized metadata to coexist
+without overwriting prior retrievals.
+
+```text
+matched tmdb_resolutions
+  -> distinct accepted media_type + tmdb_id
+  -> latest exact identity + language cache lookup
+      -> cache hit: reuse tmdb_entity_details
+      -> cache miss/refresh: TMDB movie or TV details request
+          -> parse stable descriptive attributes
+          -> append complete raw response and normalized metadata
+  -> continue after identity-level failure
+```
+
+The batch is sequential and failure-isolated. It creates the API client lazily, so a
+fully cached run does not require a token or network access. Normalized entity columns
+exclude mutable popularity and voting metrics; those will be modeled as timestamped
+observations with an explicit refresh policy.
+
 The source website's search menu does not expose an IMDb identifier. Its client-side
 JavaScript constructs a Google query in the form `site:imdb.com <displayed title>`.
 Because that adds no identity evidence and search ranking is external and unstable,

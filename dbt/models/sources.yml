@@ -59,8 +59,9 @@ sources:
 
   - name: enrichment
     description: >-
-      Append-only external metadata searches and candidates written by the Python
-      enrichment pipeline. No candidate is treated as an accepted entity match.
+      Append-only external metadata searches, resolution evidence, and matched-entity
+      details written by the Python enrichment pipeline. Search response order alone
+      is never treated as an accepted entity match.
     schema: main
     tables:
       - name: tmdb_searches
@@ -172,3 +173,49 @@ sources:
             description: Weighted total confidence score from zero to one hundred.
           - name: score_rank
             description: Candidate rank after deterministic scoring.
+
+      - name: tmdb_entity_details
+        description: >-
+          Immutable full metadata responses retrieved only for confidently matched
+          movie and television identities.
+        columns:
+          - name: entity_detail_id
+            description: Unique identifier for one entity-details retrieval.
+          - name: tmdb_id
+            description: Accepted TMDB entity identifier, interpreted with media_type.
+          - name: media_type
+            description: Accepted TMDB entity type; movie or tv.
+          - name: language
+            description: TMDB response language used for this cache entry.
+          - name: title
+            description: Localized entity title returned by TMDB.
+          - name: original_title
+            description: Entity title in its original language.
+          - name: original_language
+            description: ISO original-language code when supplied by TMDB.
+          - name: release_date
+            description: Movie release date or television first-air date.
+          - name: overview
+            description: Localized entity synopsis when available.
+          - name: tagline
+            description: Localized entity tagline when available.
+          - name: runtime_minutes
+            description: Movie runtime or first stated television episode runtime.
+          - name: status
+            description: TMDB production or release status.
+          - name: homepage
+            description: Official homepage supplied by TMDB when available.
+          - name: imdb_id
+            description: IMDb identity supplied directly by TMDB when available.
+          - name: genres_json
+            description: Ordered genre names serialized as JSON.
+          - name: production_countries_json
+            description: Ordered ISO production-country codes serialized as JSON.
+          - name: production_companies_json
+            description: Ordered production-company names serialized as JSON.
+          - name: spoken_languages_json
+            description: Ordered ISO spoken-language codes serialized as JSON.
+          - name: retrieved_at
+            description: UTC timestamp at which the details response was retrieved.
+          - name: response_json
+            description: Complete raw details response retained for audit and reprocessing.

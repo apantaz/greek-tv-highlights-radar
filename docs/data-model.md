@@ -61,7 +61,7 @@ while the underlying tables retain the complete ingestion history.
 
 ## dbt source boundary
 
-The repository-local dbt project declares the two ingestion relations and five
+The repository-local dbt project declares the two ingestion relations and six
 enrichment relations as documented sources in DuckDB's `main` schema. Derived models
 never mutate these Python-owned tables. The current dbt graph transforms the
 ingestion sources; enrichment-source models are planned for Milestone 5.
@@ -87,6 +87,7 @@ erDiagram
     tmdb_searches ||--o{ tmdb_lookup_contexts : supports
     tmdb_lookup_contexts ||--o{ tmdb_resolutions : evaluated_by
     tmdb_resolutions ||--o{ tmdb_candidate_scores : contains
+    tmdb_resolutions }o--o{ tmdb_entity_details : accepted_identity
 
     tmdb_searches {
         varchar search_id PK
@@ -147,6 +148,29 @@ erDiagram
         double total_score
         integer score_rank
     }
+
+    tmdb_entity_details {
+        varchar entity_detail_id PK
+        integer tmdb_id
+        varchar media_type
+        varchar language
+        varchar title
+        varchar original_title
+        varchar original_language
+        date release_date
+        varchar overview
+        varchar tagline
+        integer runtime_minutes
+        varchar status
+        varchar homepage
+        varchar imdb_id
+        json genres_json
+        json production_countries_json
+        json production_companies_json
+        json spoken_languages_json
+        timestamptz retrieved_at
+        json response_json
+    }
 ```
 
 One `tmdb_searches` row preserves one complete external response. Its zero or more
@@ -154,9 +178,16 @@ One `tmdb_searches` row preserves one complete external response. Its zero or mo
 preserves API response order without claiming that any candidate is the correct
 programme match. `tmdb_lookup_contexts` separately preserves the source title,
 production year, query variants, and selected search so reusable API cache entries do
-not lose observation-specific evidence. dbt declares all five relations as read-only
+not lose observation-specific evidence. dbt declares all six relations as read-only
 enrichment sources. Each lookup can have append-only versioned resolution runs;
 component scores preserve how every candidate received its final rank.
+
+`tmdb_entity_details` contains complete source responses only for identities accepted
+by a matched resolution. Its logical relationship uses `(media_type, tmdb_id)` rather
+than a physical foreign key because many resolutions and response languages may share
+one entity. The cache is append-only, and the latest row per identity and language is
+the current stable metadata record. Mutable voting and popularity observations are
+deliberately deferred to a separate historical table.
 
 ## Intermediate current-state lineage
 

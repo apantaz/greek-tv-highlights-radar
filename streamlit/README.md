@@ -11,6 +11,6 @@ Planned views include:
 - matched and unresolved enrichment coverage; and
 - ingestion and enrichment pipeline status.
 
-Implementation follows the full matched-entity metadata, historical metric snapshot,
-and dbt enrichment-model deliveries in Milestone 5. See the
+Implementation follows the historical metric snapshot and dbt enrichment-model
+deliveries in Milestone 5. See the
 [project roadmap](../docs/roadmap.md) for the current sequence.

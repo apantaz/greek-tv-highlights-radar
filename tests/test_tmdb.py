@@ -4,7 +4,12 @@ import duckdb
 import httpx
 import pytest
 
-from greek_tv.enrichment import TmdbCandidateRepository, TmdbClient, extract_title_evidence
+from greek_tv.enrichment import (
+    TmdbCandidateRepository,
+    TmdbClient,
+    TmdbEntityRepository,
+    extract_title_evidence,
+)
 
 
 def tmdb_payload():
@@ -39,6 +44,30 @@ def tmdb_payload():
         ],
         "total_pages": 1,
         "total_results": 3,
+    }
+
+
+def entity_payload():
+    return {
+        "id": 11,
+        "title": "Star Wars",
+        "original_title": "Star Wars",
+        "original_language": "en",
+        "release_date": "1977-05-25",
+        "overview": "A space opera.",
+        "tagline": "A long time ago...",
+        "runtime": 121,
+        "status": "Released",
+        "homepage": "https://www.starwars.com/",
+        "imdb_id": "tt0076759",
+        "genres": [{"id": 12, "name": "Adventure"}],
+        "production_countries": [{"iso_3166_1": "US", "name": "United States"}],
+        "production_companies": [{"id": 1, "name": "Lucasfilm"}],
+        "spoken_languages": [{"iso_639_1": "en", "english_name": "English"}],
+        "popularity": 99.0,
+        "vote_average": 8.2,
+        "vote_count": 21000,
+        "external_ids": {"imdb_id": "tt0076759"},
     }
 
 
@@ -84,11 +113,31 @@ def test_retries_transient_tmdb_responses():
     assert delays == [0.25]
 
 
+def test_retrieves_and_parses_matched_movie_details():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/3/movie/11"
+        assert request.url.params["language"] == "el-GR"
+        assert request.url.params["append_to_response"] == "external_ids"
+        return httpx.Response(200, request=request, json=entity_payload())
+
+    details = TmdbClient("token", transport=httpx.MockTransport(handler)).details("movie", 11)
+
+    assert details.title == "Star Wars"
+    assert details.runtime_minutes == 121
+    assert details.imdb_id == "tt0076759"
+    assert details.genres == ("Adventure",)
+    assert details.production_countries == ("US",)
+    assert details.production_companies == ("Lucasfilm",)
+    assert details.spoken_languages == ("en",)
+
+
 def test_rejects_blank_token_and_query():
     with pytest.raises(ValueError, match="token"):
         TmdbClient(" ")
     with pytest.raises(ValueError, match="query"):
         TmdbClient("token").search(" ")
+    with pytest.raises(ValueError, match="media type"):
+        TmdbClient("token").details("person", 1)
 
 
 def test_persists_raw_response_and_reuses_latest_candidates(tmp_path):
@@ -138,6 +187,27 @@ def test_rejects_naive_cache_timestamp(tmp_path):
 
     with pytest.raises(ValueError, match="timezone-aware"):
         repository.save("title", "Title", "el-GR", response, datetime(2026, 8, 3, 10))
+
+
+def test_persists_and_reuses_matched_entity_details(tmp_path):
+    response = entity_payload()
+    client = TmdbClient(
+        "token",
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, request=request, json=response)
+        ),
+    )
+    details = client.details("movie", 11, "en-US")
+    repository = TmdbEntityRepository(tmp_path / "tmdb.duckdb")
+    retrieved_at = datetime(2026, 8, 3, 12, tzinfo=UTC)
+
+    saved = repository.save(details, retrieved_at)
+    cached = repository.latest("movie", 11, "en-US")
+
+    assert cached == saved
+    assert cached is not None
+    assert cached.details.payload == response
+    assert repository.latest("movie", 11, "el-GR") is None
 
 
 def test_records_source_evidence_separately_from_reusable_search_cache(tmp_path):
