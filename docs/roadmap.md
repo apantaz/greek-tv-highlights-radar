@@ -1,8 +1,9 @@
 # Roadmap
 
-The `v0.6.0` release adds unattended batch orchestration and cached full metadata for
-confidently matched entities. The dbt enrichment warehouse now includes tested raw
-and current-state intermediate boundaries.
+The `v0.7.0` release completes the enrichment warehouse with direct broadcast
+lineage, canonical programme identity, programme-aware facts, historical TMDB
+metrics, and daily enrichment coverage. Transparent highlight ranking and the
+Streamlit analytics product follow.
 
 ## Milestone 1 — ERT1 vertical slice
 
@@ -50,7 +51,7 @@ and current-state intermediate boundaries.
 - [x] Project every enrichment source into documented, tested dbt raw views
 - [x] Expose latest resolution, entity metadata, and metrics through tested intermediate models
 
-## Milestone 6 — Enrichment marts
+## Milestone 6 — Enrichment marts (`v0.7.0`)
 
 - [x] Persist direct broadcast-to-lookup lineage without title-based inference
 - [x] Build a canonical programme dimension
