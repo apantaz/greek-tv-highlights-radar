@@ -9,6 +9,7 @@ from greek_tv.dashboard import (
     available_dates,
     available_sources,
     daily_highlights,
+    poster_url,
 )
 
 
@@ -28,6 +29,7 @@ def create_highlights_mart(path) -> None:
                 original_title varchar,
                 release_year integer,
                 imdb_id varchar,
+                poster_path varchar,
                 vote_average double,
                 vote_count integer,
                 popularity double,
@@ -44,7 +46,7 @@ def create_highlights_mart(path) -> None:
         connection.executemany(
             """
             insert into greek_tv_marts.mart_daily_highlights values (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
             """,
             [
@@ -59,6 +61,7 @@ def create_highlights_mart(path) -> None:
                     "Original title",
                     2020,
                     "tt123",
+                    "/poster.jpg",
                     8.0,
                     1000,
                     20.0,
@@ -78,6 +81,7 @@ def create_highlights_mart(path) -> None:
                     datetime(2026, 7, 31, 21),
                     "Another title",
                     "Another title",
+                    None,
                     None,
                     None,
                     None,
@@ -119,6 +123,11 @@ def test_dashboard_filters_and_returns_ranked_highlights(tmp_path) -> None:
     assert rows[0]["schedule_title"] == "Ελληνικός τίτλος"
     assert rows[0]["highlight_score"] == 71.0
     assert rows[0]["ranking_version"] == "v1"
+    assert poster_url(rows[0]["poster_path"]) == "https://image.tmdb.org/t/p/w500/poster.jpg"
+
+
+def test_poster_url_handles_missing_path() -> None:
+    assert poster_url(None) is None
 
 
 def test_dashboard_reports_missing_database(tmp_path) -> None:

@@ -9,6 +9,7 @@ import duckdb
 # Use schema-qualified access so an overridden DuckDB filename does not change the
 # catalog name expected by the application.
 HIGHLIGHTS_RELATION = "greek_tv_marts.mart_daily_highlights"
+TMDB_POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
 
 class DashboardDataError(RuntimeError):
@@ -103,6 +104,7 @@ def daily_highlights(
             original_title,
             release_year,
             imdb_id,
+            poster_path,
             vote_average,
             vote_count,
             popularity,
@@ -122,3 +124,10 @@ def daily_highlights(
         """,
         [source, channel, schedule_date, limit],
     )
+
+
+def poster_url(poster_path: str | None) -> str | None:
+    """Build the documented TMDB w500 asset URL for a poster path."""
+    if not poster_path:
+        return None
+    return f"{TMDB_POSTER_BASE_URL}/{poster_path.lstrip('/')}"

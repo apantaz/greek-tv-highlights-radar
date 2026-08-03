@@ -21,6 +21,7 @@ def entity_details(tmdb_id: int, *, popularity: float = 10.0) -> TmdbEntityDetai
         status="Released",
         homepage=None,
         imdb_id=None,
+        poster_path=None,
         genres=("Drama",),
         production_countries=("US",),
         production_companies=(),

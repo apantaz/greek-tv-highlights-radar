@@ -55,6 +55,7 @@ class TmdbEntityDetails:
     status: str | None
     homepage: str | None
     imdb_id: str | None
+    poster_path: str | None
     genres: tuple[str, ...]
     production_countries: tuple[str, ...]
     production_companies: tuple[str, ...]
@@ -261,6 +262,7 @@ def _parse_entity_details(
         status=_optional_text(payload.get("status")),
         homepage=_optional_text(payload.get("homepage")),
         imdb_id=_optional_text(payload.get("imdb_id")) or _optional_text(external_imdb_id),
+        poster_path=_optional_text(payload.get("poster_path")),
         genres=_named_values(payload.get("genres"), "name"),
         production_countries=_named_values(payload.get("production_countries"), "iso_3166_1"),
         production_companies=_named_values(payload.get("production_companies"), "name"),

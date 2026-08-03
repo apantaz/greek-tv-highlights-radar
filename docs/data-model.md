@@ -167,6 +167,7 @@ erDiagram
         varchar status
         varchar homepage
         varchar imdb_id
+        varchar poster_path
         json genres_json
         json production_countries_json
         json production_companies_json

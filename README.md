@@ -24,7 +24,7 @@ popularity and voting observations are published as an analytical fact, and dail
 enrichment coverage makes pipeline completeness measurable by channel and schedule
 date. Current development ranks eligible daily broadcasts with a versioned,
 component-level score that remains fully explainable and presents the results through
-a read-only Streamlit screen. The Python suite contains 104 tests.
+a read-only Streamlit screen. The Python suite contains 106 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -229,7 +229,8 @@ vote-confidence, and popularity components.
 The first read-only application screen turns the daily-highlights mart into an
 interactive archive. It provides source, channel, and date filters while keeping the
 ranking score, normalized components, raw TMDB evidence, metric timestamp, and policy
-version visible.
+version visible. Responsive poster cards use the image paths already retained in TMDB
+detail responses and fall back to a repository-local placeholder.
 
 Build the required mart and launch the application from the repository root:
 

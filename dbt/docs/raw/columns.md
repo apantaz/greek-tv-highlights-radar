@@ -127,6 +127,7 @@ UTC timestamp at which the source response was retrieved.
 {% docs raw_tmdb_entity_status %}TMDB production or release status when available.{% enddocs %}
 {% docs raw_tmdb_homepage %}Official entity homepage supplied by TMDB when available.{% enddocs %}
 {% docs raw_tmdb_imdb_id %}IMDb identifier supplied directly by TMDB when available.{% enddocs %}
+{% docs raw_tmdb_poster_path %}Relative TMDB poster asset path when available.{% enddocs %}
 {% docs raw_tmdb_genres_json %}Ordered genre names serialized as JSON.{% enddocs %}
 {% docs raw_tmdb_production_countries_json %}Ordered ISO production-country codes serialized as JSON.{% enddocs %}
 {% docs raw_tmdb_production_companies_json %}Ordered production-company names serialized as JSON.{% enddocs %}

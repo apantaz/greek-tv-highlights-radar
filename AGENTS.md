@@ -27,6 +27,7 @@ The implemented platform currently:
 16. Ranks daily highlights through a versioned and decomposable scoring policy.
 17. Presents daily highlights and their ranking evidence through a read-only
     Streamlit application.
+18. Displays TMDB poster assets with an offline fallback and explicit attribution.
 
 The roadmap next expands the Streamlit application with archive search, programme
 details, enrichment coverage, and pipeline status.

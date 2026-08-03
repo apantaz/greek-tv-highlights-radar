@@ -79,6 +79,8 @@ models:
         description: "{{ doc('mart_daily_highlights_release_year') }}"
       - name: imdb_id
         description: "{{ doc('mart_daily_highlights_imdb_id') }}"
+      - name: poster_path
+        description: "{{ doc('mart_daily_highlights_poster_path') }}"
       - name: genres_json
         description: "{{ doc('mart_daily_highlights_genres_json') }}"
         data_tests: [not_null]
@@ -409,6 +411,8 @@ models:
         description: "{{ doc('dim_programmes_homepage') }}"
       - name: imdb_id
         description: "{{ doc('dim_programmes_imdb_id') }}"
+      - name: poster_path
+        description: "{{ doc('dim_programmes_poster_path') }}"
       - name: genres_json
         description: "{{ doc('dim_programmes_genres_json') }}"
         data_tests: [not_null]

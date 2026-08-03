@@ -110,6 +110,11 @@ connections are short-lived, and cached results are invalidated by a bounded TTL
 change to the DuckDB file. The UI never triggers ingestion, transformation, entity
 resolution, or external API requests. Missing databases, missing marts, empty result
 sets, and incompatible file locks are presented as actionable states.
+Poster paths are parsed from retained TMDB detail responses and propagated through the
+raw, intermediate, programme-dimension, and daily-highlight models. The application
+constructs documented `w500` CDN URLs at presentation time, uses a local placeholder
+for missing assets, and includes the required TMDB attribution. Image binaries are not
+copied into DuckDB or the repository.
 
 ## Data grains
 

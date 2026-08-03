@@ -11,9 +11,17 @@ from greek_tv.dashboard import (
     available_dates,
     available_sources,
     daily_highlights,
+    poster_url,
 )
 
 st.set_page_config(page_title="Greek TV Highlights Radar", page_icon="📺", layout="wide")
+
+POSTER_PLACEHOLDER = Path(__file__).parent / "assets" / "poster-placeholder.svg"
+TMDB_LOGO_URL = (
+    "https://www.themoviedb.org/assets/2/v4/logos/v2/"
+    "blue_long_2-9665a76b1ae401a510ec1e0ca40ddcb3b0cfe45f1d51b77a308fea0845885648.svg"
+)
+CARDS_PER_ROW = 4
 
 
 @st.cache_data(ttl=60)
@@ -128,37 +136,50 @@ metric_columns[0].metric("Eligible results shown", len(highlights))
 metric_columns[1].metric("Top highlight score", f"{top_highlight['highlight_score']:.2f}")
 metric_columns[2].metric("Ranking policy", str(top_highlight["ranking_version"]))
 
-for highlight in highlights:
-    start_time = highlight["starts_at_local"].strftime("%H:%M")
-    title = highlight["programme_title"] or highlight["schedule_title"]
-    with st.container(border=True):
-        heading, score = st.columns([4, 1])
-        heading.subheader(f"#{highlight['highlight_rank']} · {start_time} · {title}")
-        heading.caption(
-            f"Schedule title: {highlight['schedule_title']}"
-            + (
-                f" · Original title: {highlight['original_title']}"
-                if highlight["original_title"]
-                else ""
-            )
-        )
-        score.metric("Highlight score", f"{highlight['highlight_score']:.2f}")
+for row_start in range(0, len(highlights), CARDS_PER_ROW):
+    row_highlights = highlights[row_start : row_start + CARDS_PER_ROW]
+    columns = st.columns(len(row_highlights))
+    for column, highlight in zip(columns, row_highlights, strict=True):
+        start_time = highlight["starts_at_local"].strftime("%H:%M")
+        title = highlight["programme_title"] or highlight["schedule_title"]
+        image = poster_url(highlight["poster_path"]) or POSTER_PLACEHOLDER
 
-        components = st.columns(3)
-        components[0].metric("Quality · 70%", f"{highlight['quality_score']:.2f}")
-        components[1].metric("Vote confidence · 20%", f"{highlight['confidence_score']:.2f}")
-        components[2].metric("Popularity · 10%", f"{highlight['popularity_score']:.2f}")
+        with column.container(border=True):
+            st.image(image, width="stretch")
+            st.markdown(f"#### #{highlight['highlight_rank']} · {title}")
+            st.caption(f"{start_time} · {channel} · {highlight['schedule_title']}")
 
-        with st.expander("Ranking evidence"):
-            st.write(
-                {
-                    "TMDB vote average": highlight["vote_average"],
-                    "TMDB vote count": highlight["vote_count"],
-                    "TMDB popularity": highlight["popularity"],
-                    "Metrics observed at": highlight["metrics_observed_at"],
-                    "IMDb ID": highlight["imdb_id"],
-                    "Policy": highlight["ranking_explanation"],
-                }
+            score_columns = st.columns(2)
+            score_columns[0].metric(
+                "TMDB rating",
+                (
+                    f"{highlight['vote_average']:.1f}"
+                    if highlight["vote_average"] is not None
+                    else "—"
+                ),
             )
+            score_columns[1].metric("Highlight", f"{highlight['highlight_score']:.1f}")
+
+            with st.expander("Why this rank?"):
+                st.write(
+                    {
+                        "Quality · 70%": highlight["quality_score"],
+                        "Vote confidence · 20%": highlight["confidence_score"],
+                        "Popularity · 10%": highlight["popularity_score"],
+                        "TMDB vote count": highlight["vote_count"],
+                        "TMDB popularity": highlight["popularity"],
+                        "Metrics observed at": highlight["metrics_observed_at"],
+                        "IMDb ID": highlight["imdb_id"],
+                        "Policy": highlight["ranking_explanation"],
+                    }
+                )
 
 st.caption(f"Read-only data source: `{database_path}`")
+
+with st.expander("About & credits"):
+    st.image(TMDB_LOGO_URL, width=180)
+    st.markdown(
+        "This product uses the TMDB API but is not endorsed or certified by TMDB. "
+        "Programme metadata, ratings, and poster images are provided by "
+        "[The Movie Database (TMDB)](https://www.themoviedb.org)."
+    )
