@@ -23,8 +23,8 @@ programme dimension while retaining unresolved broadcasts. Historical TMDB
 popularity and voting observations are published as an analytical fact, and daily
 enrichment coverage makes pipeline completeness measurable by channel and schedule
 date. Current development ranks eligible daily broadcasts with a versioned,
-component-level score that remains fully explainable. Streamlit delivery is next. The
-Python suite contains 100 tests.
+component-level score that remains fully explainable and presents the results through
+a read-only Streamlit screen. The Python suite contains 104 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -37,6 +37,8 @@ ProgrammaTileorasis.gr
   → tested raw dbt views
   → latest successful runs and current broadcasts
   → channel dimension, broadcast fact, and daily schedule mart
+  → transparent daily-highlight ranking
+  → Streamlit analytics screen
 
 Current programme evidence
   → deterministic title and production-year extraction
@@ -50,8 +52,8 @@ The source adapter discovers the free channels advertised by the upstream source
 runtime and can ingest the complete catalog with isolated per-channel failures. TMDB
 enrichment preserves each source title, caches typed TMDB movie and TV candidates
 with their raw API evidence, and scores them through a conservative, explainable
-policy. Uncertain results remain unresolved. Recommendations and Streamlit follow now
-that the ingestion, analytics, and external-metadata boundaries are reliable.
+policy. Uncertain results remain unresolved. The first Streamlit view exposes ranked
+daily highlights without crossing the transformation or external-metadata boundaries.
 
 ### TMDB candidate cache
 
@@ -221,6 +223,26 @@ intermediate views. The canonical programme dimension, programme-aware broadcast
 fact, historical TMDB metrics fact, and daily enrichment-coverage mart are available.
 The daily-highlights mart ranks canonical broadcasts using visible quality,
 vote-confidence, and popularity components.
+
+## Streamlit analytics app
+
+The first read-only application screen turns the daily-highlights mart into an
+interactive archive. It provides source, channel, and date filters while keeping the
+ranking score, normalized components, raw TMDB evidence, metric timestamp, and policy
+version visible.
+
+Build the required mart and launch the application from the repository root:
+
+```bash
+cd dbt
+dbt build --select +mart_daily_highlights
+cd ..
+streamlit run streamlit/app.py
+```
+
+The app reads `data/greek_tv.duckdb` by default. A different database can be selected
+from its sidebar. See the [Streamlit app guide](streamlit/README.md) for its data
+boundary and troubleshooting notes.
 
 Run dbt directly from its project directory:
 

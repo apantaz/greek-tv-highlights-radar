@@ -102,6 +102,15 @@ three normalized components, weighted score, metric timestamp, and deterministic
 tie-break attributes. Rebuilding after a metric refresh can change ranks explicitly;
 the retained observation ID and ranking version keep each result explainable.
 
+## Presentation boundary
+
+The Streamlit application queries only the tested `mart_daily_highlights` relation
+through a small read-only Python query boundary. SQL filter values are parameterized,
+connections are short-lived, and cached results are invalidated by a bounded TTL or a
+change to the DuckDB file. The UI never triggers ingestion, transformation, entity
+resolution, or external API requests. Missing databases, missing marts, empty result
+sets, and incompatible file locks are presented as actionable states.
+
 ## Data grains
 
 See the [data model](data-model.md) for the current entity-relationship diagram and

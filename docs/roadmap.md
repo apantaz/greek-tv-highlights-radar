@@ -1,9 +1,7 @@
 # Roadmap
 
-The `v0.7.0` release completes the enrichment warehouse with direct broadcast
-lineage, canonical programme identity, programme-aware facts, historical TMDB
-metrics, and daily enrichment coverage. Transparent highlight ranking and the
-Streamlit analytics product follow.
+The `v0.7.0` release completes the enrichment warehouse. Current development adds a
+transparent highlight-ranking product and exposes it through a local Streamlit app.
 
 ## Milestone 1 — ERT1 vertical slice
 
@@ -62,4 +60,6 @@ Streamlit analytics product follow.
 ## Milestone 7 — Analytics product
 
 - [x] Rank transparent daily highlights
-- [ ] Build archive search and pipeline-status views in Streamlit
+- [x] Add the Streamlit foundation and daily-highlights screen
+- [ ] Build archive search and programme-detail views in Streamlit
+- [ ] Build enrichment-coverage and pipeline-status views in Streamlit
