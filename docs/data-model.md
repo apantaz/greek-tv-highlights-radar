@@ -63,8 +63,8 @@ while the underlying tables retain the complete ingestion history.
 
 The repository-local dbt project declares the two ingestion relations and seven
 enrichment relations as documented sources in DuckDB's `main` schema. Derived models
-never mutate these Python-owned tables. The current dbt graph transforms the
-ingestion sources; enrichment-source models are planned for Milestone 5.
+never mutate these Python-owned tables. The current dbt raw graph projects all nine
+sources; downstream enrichment models are planned for the remainder of Milestone 5.
 
 The first derived layer adds two views without changing the source relationships:
 

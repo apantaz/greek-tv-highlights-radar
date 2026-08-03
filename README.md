@@ -14,13 +14,13 @@ warehouse backed by reliable multi-channel ingestion from
 discovered at runtime, ingestion history remains immutable, and dbt transforms the
 latest successful schedules into documented business-facing tables.
 
-The warehouse includes tested raw and intermediate views, a channel dimension, a
-current-broadcast fact, and a daily schedule mart. The complete dbt graph contains
-seven models protected by 104 data tests.
+The warehouse includes tested ingestion and enrichment raw views, schedule
+intermediate views, a channel dimension, a current-broadcast fact, and a daily
+schedule mart. The complete dbt graph contains 14 models protected by 191 data tests.
 
-Current development adds bounded, append-only snapshots of mutable voting and
-popularity metrics. The next delivery exposes resolved entity metadata and metric
-history through tested dbt models. The Python suite contains 100 tests.
+Current development projects all seven enrichment relations through a documented,
+tested dbt raw boundary. The next delivery derives latest resolution, entity-detail,
+and metric state through intermediate models. The Python suite contains 100 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -208,9 +208,9 @@ hooks enforce that compatibility line. The `version` in `dbt_project.yml` descri
 the project itself, while `require-dbt-version` constrains the dbt Core runtime.
 The ingestion and enrichment tables are declared as documented dbt sources,
 establishing the read-only boundary between Python and SQL transformation. The
-current dbt graph transforms the ingestion sources into tested raw and intermediate
-views and three tables in `greek_tv_marts`; enrichment models are the next warehouse
-delivery.
+current dbt graph transforms ingestion sources through the complete schedule
+warehouse and projects every enrichment source into a tested raw view. Enrichment
+intermediate and mart models are the next warehouse deliveries.
 
 Run dbt directly from its project directory:
 
@@ -364,8 +364,8 @@ order by media_type, tmdb_id, observed_at;
   no user-specific profile.
 - dbt-checkpoint validates parsing, compilation, and documentation generation before
   pushes.
-- The raw warehouse layer has explicit columns, persisted documentation, and 23 data
-  tests covering its key source contracts.
+- The raw warehouse layer has explicit columns, persisted documentation, and 110 data
+  tests covering ingestion and enrichment source contracts.
 - The intermediate layer derives current state deterministically and adds 29 tests
   for grain, lineage, required attributes, and temporal validity.
 - The mart layer exposes Athens-local schedule analytics through a channel dimension,

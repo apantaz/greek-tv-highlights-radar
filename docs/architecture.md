@@ -55,10 +55,10 @@ state without a demonstrated analytical or operational need.
 
 ## Transformation boundary
 
-The repository-local dbt project connects to the ingestion DuckDB file and declares
-`ingestion_runs` and `broadcast_observations` as sources in the `main` schema. Python
-owns ingestion and immutable source data; dbt owns derived analytical schemas and
-must not mutate ingestion relations.
+The repository-local dbt project connects to the DuckDB file and declares two
+ingestion relations and seven enrichment relations as sources in the `main` schema.
+Python owns source data; dbt owns derived analytical schemas and must not mutate
+Python-owned relations.
 
 The dbt development target uses `greek_tv` as a namespace. Folder-level schema
 configuration writes raw models to `greek_tv_raw`, intermediate models to
@@ -67,9 +67,10 @@ persisted on relations and columns so the warehouse remains self-documenting.
 Seeds share the `greek_tv_raw` schema, timestamp-strategy snapshots target
 `snapshots`, and data-test failures are not persisted by default.
 
-The raw layer exposes `raw_ingestion_runs` and `raw_broadcast_observations` as views.
-It preserves source grains and column meaning while enforcing source-boundary
-contracts through dbt tests. Intermediate, dimensional, and mart models are added as
+The raw layer exposes all nine source relations as explicitly configured views. It
+preserves source grains and column meaning while enforcing source-boundary contracts
+through dbt tests. Enrichment models carry both the folder-level `raw` tag and the
+semantic `enrichment` tag. Intermediate, dimensional, and mart models are added as
 separately reviewable deliveries.
 
 The intermediate layer ranks successful runs within each

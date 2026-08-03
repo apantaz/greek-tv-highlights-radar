@@ -1,8 +1,8 @@
 # Roadmap
 
 The `v0.6.0` release adds unattended batch orchestration and cached full metadata for
-confidently matched entities. Current development adds historical metric snapshots;
-dbt enrichment models are the next delivery.
+confidently matched entities. Current development adds the dbt enrichment warehouse,
+starting with its tested raw source boundary.
 
 ## Milestone 1 — ERT1 vertical slice
 
@@ -47,6 +47,7 @@ dbt enrichment models are the next delivery.
 - [x] Retrieve full details only for confidently matched TMDB entities
 - [x] Cache stable entity metadata by media type, TMDB ID, and language
 - [x] Snapshot mutable voting and popularity metrics on a bounded refresh interval
+- [x] Project every enrichment source into documented, tested dbt raw views
 - [ ] Expose resolved entity metadata through tested dbt models
 
 ## Milestone 6 — Analytics product
