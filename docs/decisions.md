@@ -179,3 +179,13 @@ to 24 hours, controls whether another request is due; fresh batches construct no
 client. Existing raw detail responses provide a non-destructive historical baseline.
 Operational failures remain isolated, and a zero-hour boundary provides an explicit
 forced-refresh mechanism without a separate mutation path.
+
+## ADR-021
+Broadcast enrichment lineage is persisted by stable identifiers.
+
+Each current broadcast observation is linked directly to the lookup context evaluated
+for it. The append-only bridge is idempotent at observation, lookup, and scoring-version
+grain and is populated for both newly processed and cached evidence. dbt uses this
+relationship to expose enrichment at broadcast grain while retaining unlinked and
+unresolved observations. Title-based inference is prohibited because matching text is
+not a durable lineage key.

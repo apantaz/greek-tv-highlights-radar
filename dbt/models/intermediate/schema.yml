@@ -390,3 +390,41 @@ models:
         description: "{{ doc('int_tmdb_vote_count') }}"
       - name: metrics_observed_at
         description: "{{ doc('int_tmdb_metrics_observed_at') }}"
+
+  - name: int_current_broadcast_enrichment
+    description: "{{ doc('int_current_broadcast_enrichment') }}"
+    columns:
+      - name: observation_id
+        description: "{{ doc('int_enrichment_observation_id') }}"
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int_current_broadcasts')
+                field: observation_id
+      - name: lookup_id
+        description: "{{ doc('int_tmdb_lookup_id') }}"
+      - name: language
+        description: "{{ doc('int_tmdb_language') }}"
+      - name: scoring_version
+        description: "{{ doc('int_tmdb_scoring_version') }}"
+      - name: linked_at
+        description: "{{ doc('int_enrichment_linked_at') }}"
+      - name: resolution_id
+        description: "{{ doc('int_tmdb_resolution_id') }}"
+      - name: resolution_status
+        description: "{{ doc('int_tmdb_resolution_status') }}"
+        data_tests:
+          - accepted_values:
+              arguments: {values: [matched, unresolved]}
+      - name: resolution_reason
+        description: "{{ doc('int_tmdb_resolution_reason') }}"
+      - name: tmdb_id
+        description: "{{ doc('int_tmdb_id') }}"
+      - name: media_type
+        description: "{{ doc('int_tmdb_media_type') }}"
+      - name: entity_detail_id
+        description: "{{ doc('int_tmdb_entity_detail_id') }}"
+      - name: metric_observation_id
+        description: "{{ doc('int_tmdb_metric_observation_id') }}"

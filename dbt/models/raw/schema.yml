@@ -413,3 +413,36 @@ models:
       - name: observed_at
         description: "{{ doc('raw_tmdb_observed_at') }}"
         data_tests: [not_null]
+
+  - name: raw_broadcast_enrichment_lookups
+    description: "{{ doc('raw_broadcast_enrichment_lookups') }}"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [observation_id, lookup_id, scoring_version]
+    columns:
+      - name: observation_id
+        description: "{{ doc('raw_enrichment_observation_id') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('raw_broadcast_observations')
+                field: observation_id
+      - name: lookup_id
+        description: "{{ doc('raw_tmdb_lookup_id') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('raw_tmdb_lookup_contexts')
+                field: lookup_id
+      - name: language
+        description: "{{ doc('raw_tmdb_language') }}"
+        data_tests: [not_null]
+      - name: scoring_version
+        description: "{{ doc('raw_tmdb_scoring_version') }}"
+        data_tests: [not_null]
+      - name: linked_at
+        description: "{{ doc('raw_enrichment_linked_at') }}"
+        data_tests: [not_null]
