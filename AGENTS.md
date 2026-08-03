@@ -25,8 +25,8 @@ The implemented platform currently:
 14. Publishes mutable TMDB popularity and voting history as an analytical fact.
 15. Measures enrichment coverage by channel and schedule date.
 
-The roadmap adds dbt enrichment models and a Streamlit analytics application
-incrementally.
+The roadmap next adds transparent highlight ranking and a Streamlit analytics
+application incrementally.
 
 The project is intentionally designed as a production-quality portfolio that demonstrates modern Analytics Engineering and Data Engineering practices.
 

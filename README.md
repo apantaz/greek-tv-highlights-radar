@@ -6,10 +6,10 @@ explainable daily highlights.
 
 ## Current milestone
 
-The `v0.6.0` release adds unattended batch enrichment and full metadata retrieval for
-confidently matched TMDB entities. It builds on deterministic title evidence,
-immutable candidate caching, conservative automatic resolution, and the analytics
-warehouse backed by reliable multi-channel ingestion from
+The `v0.7.0` release connects exact broadcast observations to confidently matched
+TMDB identities and publishes that enrichment through tested analytical marts. It
+builds on deterministic title evidence, immutable candidate caching, conservative
+automatic resolution, and reliable multi-channel ingestion from
 [ProgrammaTileorasis.gr](https://programmatileorasis.gr/). The source catalog is
 discovered at runtime, ingestion history remains immutable, and dbt transforms the
 latest successful schedules into documented business-facing tables.
@@ -18,12 +18,12 @@ The warehouse includes tested ingestion and enrichment raw views, schedule
 intermediate views, a channel dimension, a current-broadcast fact, and a daily
 schedule mart. The complete dbt graph contains 23 models protected by 334 data tests.
 
-Current development connects the current-broadcast fact to the canonical programme
-dimension through direct observation lineage while retaining unresolved broadcasts.
-Historical TMDB popularity and voting observations are published as an analytical
-fact, and daily enrichment coverage makes pipeline completeness measurable by channel
-and schedule date. Milestone 6 is complete; transparent highlight ranking is next.
-The Python suite contains 100 tests.
+Direct observation lineage connects the current-broadcast fact to a canonical
+programme dimension while retaining unresolved broadcasts. Historical TMDB
+popularity and voting observations are published as an analytical fact, and daily
+enrichment coverage makes pipeline completeness measurable by channel and schedule
+date. Transparent highlight ranking is the next milestone. The Python suite contains
+100 tests.
 
 ```text
 ProgrammaTileorasis.gr
