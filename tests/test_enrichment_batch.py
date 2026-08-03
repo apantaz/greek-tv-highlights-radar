@@ -35,8 +35,18 @@ class FakeTmdbClient:
 def create_current_programmes(path, rows):
     TmdbCandidateRepository(path).initialize()
     with duckdb.connect(str(path)) as connection:
-        connection.execute("create table current_broadcasts (title varchar, description varchar)")
-        connection.executemany("insert into current_broadcasts values (?, ?)", rows)
+        connection.execute(
+            "create table ingestion_runs (run_id varchar, channel varchar, schedule_date date)"
+        )
+        connection.execute("insert into ingestion_runs values ('run-star', 'STAR', '2026-08-01')")
+        connection.execute(
+            """
+            create table current_broadcasts (
+                run_id varchar, title varchar, description varchar
+            )
+            """
+        )
+        connection.executemany("insert into current_broadcasts values ('run-star', ?, ?)", rows)
 
 
 def test_enriches_distinct_programmes_and_skips_equivalent_evidence_on_next_run(tmp_path):
@@ -86,3 +96,26 @@ def test_isolates_title_failures_and_continues_batch(tmp_path):
     assert result.count(BatchEnrichmentStatus.MATCHED) == 1
     assert result.programmes[0].error_message == "RuntimeError: TMDB unavailable"
     assert client.queries == [("Broken", "el-GR"), ("Working", "el-GR")]
+
+
+def test_filters_current_programmes_by_channel_and_schedule_date(tmp_path):
+    path = tmp_path / "batch.duckdb"
+    create_current_programmes(path, [("STAR Programme", None)])
+    with duckdb.connect(str(path)) as connection:
+        connection.execute("insert into ingestion_runs values ('run-ert', 'ΕΡΤ1', '2026-08-02')")
+        connection.execute(
+            "insert into current_broadcasts values ('run-ert', 'ERT Programme', null)"
+        )
+    client = FakeTmdbClient()
+
+    result = enrich_current_programmes(
+        path,
+        language="el-GR",
+        client_factory=lambda: client,
+        channel="star",
+        schedule_date=date(2026, 8, 1),
+    )
+
+    assert result.total == 1
+    assert result.programmes[0].source_title == "STAR Programme"
+    assert client.queries == [("STAR Programme", "el-GR")]

@@ -53,6 +53,8 @@ def build_parser() -> argparse.ArgumentParser:
     enrich = commands.add_parser("enrich", help="enrich all distinct current programmes")
     enrich.add_argument("--language", default="el-GR")
     enrich.add_argument("--limit", type=_positive_int)
+    enrich.add_argument("--channel")
+    enrich.add_argument("--date", type=date.fromisoformat, metavar="YYYY-MM-DD")
     return parser
 
 
@@ -68,6 +70,8 @@ def main() -> None:
             language=args.language,
             client_factory=_tmdb_client,
             limit=args.limit,
+            channel=args.channel,
+            schedule_date=args.date,
         )
         _print_enrichment_summary(result)
         if result.failed:

@@ -60,10 +60,24 @@ def test_tmdb_search_parser_exposes_language_and_refresh_controls():
 
 
 def test_enrich_parser_exposes_language_and_incremental_limit():
-    args = cli.build_parser().parse_args(["enrich", "--language", "en-US", "--limit", "10"])
+    args = cli.build_parser().parse_args(
+        [
+            "enrich",
+            "--language",
+            "en-US",
+            "--limit",
+            "10",
+            "--channel",
+            "star",
+            "--date",
+            "2026-08-01",
+        ]
+    )
 
     assert args.language == "en-US"
     assert args.limit == 10
+    assert args.channel == "star"
+    assert args.date == date(2026, 8, 1)
 
 
 def batch_result(*, failed: bool) -> BatchIngestionResult:

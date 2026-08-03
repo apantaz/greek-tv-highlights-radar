@@ -183,8 +183,10 @@ distinct current title + description
 ```
 
 Processing remains sequential to keep upstream request behavior predictable. An
-optional limit supports controlled incremental runs. Unresolved identity is a valid
-outcome; only operational failures make the command exit non-zero.
+optional limit supports controlled incremental runs. Optional channel and requested
+schedule-date filters join current broadcasts back to their ingestion runs before
+evidence is deduplicated. Unresolved identity is a valid outcome; only operational
+failures make the command exit non-zero.
 
 The source website's search menu does not expose an IMDb identifier. Its client-side
 JavaScript constructs a Google query in the form `site:imdb.com <displayed title>`.

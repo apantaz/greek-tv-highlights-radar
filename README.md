@@ -19,7 +19,7 @@ seven models protected by 104 data tests.
 Current development adds the `v0.5.0` enrichment milestone: deterministic title
 evidence, immutable TMDB candidate caching, and conservative automatic resolution
 with fully auditable component scores and unattended batch orchestration. The Python
-suite contains 86 tests.
+suite contains 87 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -98,12 +98,19 @@ For a controlled first run, bound the number of distinct evidence combinations:
 greek-tv enrich --limit 10
 ```
 
+Target one ingested channel and requested schedule date:
+
+```bash
+greek-tv enrich --channel star --date 2026-08-01
+```
+
 Batch enrichment is sequential, reuses cached searches, skips evidence already scored
 by the current policy version, and isolates title-level failures. The final summary
 reports matched, unresolved, skipped, failed, cached, and retrieved counts. A repeated
 run therefore performs no TMDB requests for unchanged processed evidence. The command
 exits with status `1` only when operational failures occur; unresolved identities are
-valid data outcomes.
+valid data outcomes. Channel matching is case-insensitive, and the date refers to the
+requested ingestion schedule date rather than timestamps after midnight rollover.
 
 ## Quick start
 

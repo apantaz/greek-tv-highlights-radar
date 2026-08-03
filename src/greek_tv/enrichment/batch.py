@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import date
 from enum import StrEnum
 from pathlib import Path
 
@@ -63,13 +64,15 @@ def enrich_current_programmes(
     language: str,
     client_factory: Callable[[], TmdbClient],
     limit: int | None = None,
+    channel: str | None = None,
+    schedule_date: date | None = None,
 ) -> BatchEnrichmentResult:
     """Enrich distinct current programme evidence with isolated per-title failures."""
     if limit is not None and limit < 1:
         raise ValueError("batch enrichment limit must be at least 1")
     repository = TmdbCandidateRepository(database_path)
     repository.initialize()
-    rows = _current_programmes(database_path)
+    rows = _current_programmes(database_path, channel=channel, schedule_date=schedule_date)
     if limit is not None:
         rows = rows[:limit]
     results = []
@@ -115,12 +118,29 @@ def enrich_current_programmes(
     return BatchEnrichmentResult(tuple(results))
 
 
-def _current_programmes(database_path: Path) -> list[tuple[str, str | None]]:
+def _current_programmes(
+    database_path: Path,
+    *,
+    channel: str | None,
+    schedule_date: date | None,
+) -> list[tuple[str, str | None]]:
+    predicates = []
+    parameters = []
+    if channel:
+        predicates.append("lower(runs.channel) = lower(?)")
+        parameters.append(channel)
+    if schedule_date:
+        predicates.append("runs.schedule_date = ?")
+        parameters.append(schedule_date)
+    where_clause = f"where {' and '.join(predicates)}" if predicates else ""
     with duckdb.connect(str(database_path), read_only=True) as connection:
         return connection.execute(
-            """
-            select distinct title, description
-            from current_broadcasts
+            f"""
+            select distinct broadcasts.title, broadcasts.description
+            from current_broadcasts as broadcasts
+            inner join ingestion_runs as runs using (run_id)
+            {where_clause}
             order by title, description
-            """
+            """,
+            parameters,
         ).fetchall()
