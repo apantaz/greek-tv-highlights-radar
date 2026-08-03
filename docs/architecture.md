@@ -149,6 +149,21 @@ year, ordered query variants, override usage, and selected search ID. Candidate
 scoring can therefore use source-specific evidence even when several observations
 reuse the same cached TMDB response.
 
+## Resolution boundary
+
+Candidate resolution is deterministic, versioned, and append-only. Scoring version
+`v1` compares the selected search query with both the localized and original TMDB
+candidate titles. When a source production year exists, title similarity contributes
+75% of the total and year agreement contributes 25%; without year evidence, title
+similarity is the total score.
+
+A candidate is matched only when it reaches 85 points and leads the runner-up by at
+least 10 points. No candidates, a weak winner, or an ambiguous margin produces an
+explicit unresolved outcome. Popularity and vote metrics do not contribute because
+they change over time and do not establish identity. Every component score and final
+reason is retained; unresolved resolution rows keep their accepted `tmdb_id` and
+`media_type` fields null. There is no manual override or review workflow.
+
 The source website's search menu does not expose an IMDb identifier. Its client-side
 JavaScript constructs a Google query in the form `site:imdb.com <displayed title>`.
 Because that adds no identity evidence and search ranking is external and unstable,

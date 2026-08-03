@@ -6,7 +6,7 @@ explainable daily highlights.
 
 ## Current milestone
 
-Version `v0.4.0` delivers the first complete analytics warehouse on top of reliable
+The latest release, `v0.4.0`, delivers the first complete analytics warehouse on top of reliable
 multi-channel ingestion from
 [ProgrammaTileorasis.gr](https://programmatileorasis.gr/). The source catalog is
 discovered at runtime, ingestion history remains immutable, and dbt transforms the
@@ -15,6 +15,10 @@ latest successful schedules into documented business-facing tables.
 The warehouse includes tested raw and intermediate views, a channel dimension, a
 current-broadcast fact, and a daily schedule mart. The complete dbt graph contains
 seven models protected by 104 data tests.
+
+Current development adds the `v0.5.0` enrichment milestone: deterministic title
+evidence, immutable TMDB candidate caching, and conservative automatic resolution
+with fully auditable component scores. The Python suite contains 83 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -31,10 +35,10 @@ ProgrammaTileorasis.gr
 
 The source adapter discovers the free channels advertised by the upstream source at
 runtime and can ingest the complete catalog with isolated per-channel failures. TMDB
-enrichment preserves each source title, produces a deterministic candidate-search
-value, and caches typed TMDB movie and TV candidates with their raw API evidence.
-Entity matching, recommendations, and Streamlit follow now that the ingestion,
-analytics, and external-metadata boundaries are reliable.
+enrichment preserves each source title, caches typed TMDB movie and TV candidates
+with their raw API evidence, and scores them through a conservative, explainable
+policy. Uncertain results remain unresolved. Recommendations and Streamlit follow now
+that the ingestion, analytics, and external-metadata boundaries are reliable.
 
 ### TMDB candidate cache
 
@@ -70,6 +74,14 @@ explicit fallback for records whose source text contains insufficient evidence.
 
 Candidate rank records API response order only. It is not an accepted entity match or
 a recommendation score.
+
+Every lookup is scored automatically after retrieval. Title similarity contributes
+the full score when no production year is available; when a year is present, title
+similarity contributes 75% and year agreement contributes 25%. A match requires at
+least 85 points and a lead of at least 10 points over the runner-up. Anything weaker
+or ambiguous is persisted as `unresolved` with a machine-readable reason and no human
+review step. Unresolved rows keep their accepted TMDB identity fields null while the
+candidate-score rows retain the evidence needed to explain the outcome.
 
 ## Quick start
 
@@ -243,6 +255,12 @@ Known channels receive readable stable aliases; newly advertised channels remain
 immediately addressable by source ID or a `channel-<id>` fallback slug. The upstream
 HTML is an external contract and may change; structural and quality failures are
 recorded and fail loudly rather than silently storing incomplete data.
+
+TMDB enrichment currently retains search responses, candidate metadata, scoring
+evidence, and conservative resolution outcomes. Full entity details such as genres,
+runtime, production companies, credits, and external IDs are not fetched yet.
+Changing vote, count, and popularity metrics will be stored as timestamped snapshots
+rather than overwriting history.
 
 See the [data model and ERD](docs/data-model.md),
 [architecture](docs/architecture.md), [decisions](docs/decisions.md), and the

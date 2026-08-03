@@ -84,6 +84,8 @@ basic numerical and temporal expectations.
 erDiagram
     tmdb_searches ||--o{ tmdb_candidates : returns
     tmdb_searches ||--o{ tmdb_lookup_contexts : supports
+    tmdb_lookup_contexts ||--o{ tmdb_resolutions : evaluated_by
+    tmdb_resolutions ||--o{ tmdb_candidate_scores : contains
 
     tmdb_searches {
         varchar search_id PK
@@ -119,6 +121,31 @@ erDiagram
         varchar search_id FK
         timestamptz created_at
     }
+
+    tmdb_resolutions {
+        varchar resolution_id PK
+        varchar lookup_id FK
+        varchar scoring_version
+        varchar status
+        varchar reason
+        integer winning_candidate_rank
+        integer tmdb_id
+        varchar media_type
+        double winning_score
+        double runner_up_score
+        double score_margin
+        timestamptz resolved_at
+    }
+
+    tmdb_candidate_scores {
+        varchar resolution_id PK, FK
+        integer candidate_rank PK
+        integer tmdb_id
+        double title_score
+        double year_score
+        double total_score
+        integer score_rank
+    }
 ```
 
 One `tmdb_searches` row preserves one complete external response. Its zero or more
@@ -127,7 +154,8 @@ preserves API response order without claiming that any candidate is the correct
 programme match. `tmdb_lookup_contexts` separately preserves the source title,
 production year, query variants, and selected search so reusable API cache entries do
 not lose observation-specific evidence. dbt declares all three relations as read-only
-enrichment sources.
+enrichment sources. Each lookup can have append-only versioned resolution runs;
+component scores preserve how every candidate received its final rank.
 
 ## Intermediate current-state lineage
 

@@ -169,6 +169,11 @@ def test_records_source_evidence_separately_from_reusable_search_cache(tmp_path)
     )
     assert lookup.used_query_override is False
     assert lookup.search_id == search.search_id
+    persisted = repository.resolve_lookup(lookup.lookup_id, resolved_at=created_at)
+
+    assert persisted.lookup_id == lookup.lookup_id
+    assert persisted.scoring_version == "v1"
+    assert persisted.resolution.status.value == "unresolved"
     with duckdb.connect(str(repository.path), read_only=True) as connection:
         row = connection.execute(
             """
@@ -178,4 +183,14 @@ def test_records_source_evidence_separately_from_reusable_search_cache(tmp_path)
             """,
             [lookup.lookup_id],
         ).fetchone()
+        score_count = connection.execute(
+            "select count(*) from tmdb_candidate_scores where resolution_id = ?",
+            [persisted.resolution_id],
+        ).fetchone()[0]
+        accepted_identity = connection.execute(
+            "select tmdb_id, media_type from tmdb_resolutions where resolution_id = ?",
+            [persisted.resolution_id],
+        ).fetchone()
     assert row == (2013, search.search_id)
+    assert score_count == 2
+    assert accepted_identity == (None, None)

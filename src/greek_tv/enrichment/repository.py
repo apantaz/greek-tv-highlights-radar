@@ -9,6 +9,12 @@ from uuid import uuid4
 import duckdb
 
 from greek_tv.enrichment.evidence import TitleEvidence
+from greek_tv.enrichment.resolution import (
+    Resolution,
+    ResolutionStatus,
+    resolution_timestamp,
+    resolve_candidates,
+)
 from greek_tv.enrichment.titles import normalize_title
 from greek_tv.enrichment.tmdb import TmdbCandidate, TmdbSearchResponse
 
@@ -37,6 +43,17 @@ class TmdbLookupContext:
     used_query_override: bool
     search_id: str
     created_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class PersistedTmdbResolution:
+    """One append-only scoring run and its resolution outcome."""
+
+    resolution_id: str
+    lookup_id: str
+    scoring_version: str
+    resolved_at: datetime
+    resolution: Resolution
 
 
 class TmdbCandidateRepository:
@@ -104,6 +121,41 @@ class TmdbCandidateRepository:
                     primary key (search_id, candidate_rank),
                     foreign key (search_id) references tmdb_searches(search_id),
                     check (media_type in ('movie', 'tv'))
+                )
+                """
+            )
+            connection.execute(
+                """
+                create table if not exists tmdb_resolutions (
+                    resolution_id varchar primary key,
+                    lookup_id varchar not null,
+                    scoring_version varchar not null,
+                    status varchar not null,
+                    reason varchar not null,
+                    winning_candidate_rank integer,
+                    tmdb_id integer,
+                    media_type varchar,
+                    winning_score double,
+                    runner_up_score double,
+                    score_margin double,
+                    resolved_at timestamptz not null,
+                    foreign key (lookup_id) references tmdb_lookup_contexts(lookup_id),
+                    check (status in ('matched', 'unresolved'))
+                )
+                """
+            )
+            connection.execute(
+                """
+                create table if not exists tmdb_candidate_scores (
+                    resolution_id varchar not null,
+                    candidate_rank integer not null,
+                    tmdb_id integer not null,
+                    title_score double not null,
+                    year_score double,
+                    total_score double not null,
+                    score_rank integer not null,
+                    primary key (resolution_id, candidate_rank),
+                    foreign key (resolution_id) references tmdb_resolutions(resolution_id)
                 )
                 """
             )
@@ -239,3 +291,105 @@ class TmdbCandidateRepository:
                 ],
             )
         return context
+
+    def resolve_lookup(
+        self,
+        lookup_id: str,
+        *,
+        scoring_version: str = "v1",
+        resolved_at: datetime | None = None,
+    ) -> PersistedTmdbResolution:
+        """Score one lookup and append its component scores and conservative outcome."""
+        self.initialize()
+        with duckdb.connect(str(self.path), read_only=True) as connection:
+            lookup = connection.execute(
+                """
+                select contexts.production_year, searches.search_query
+                from tmdb_lookup_contexts as contexts
+                inner join tmdb_searches as searches using (search_id)
+                where contexts.lookup_id = ?
+                """,
+                [lookup_id],
+            ).fetchone()
+            if lookup is None:
+                raise KeyError(f"TMDB lookup {lookup_id!r} was not found")
+            rows = connection.execute(
+                """
+                select
+                    candidates.candidate_rank, candidates.tmdb_id,
+                    candidates.media_type, candidates.title,
+                    candidates.original_title, candidates.original_language,
+                    candidates.release_date, candidates.overview,
+                    candidates.popularity, candidates.vote_average,
+                    candidates.vote_count
+                from tmdb_lookup_contexts as contexts
+                inner join tmdb_candidates as candidates using (search_id)
+                where contexts.lookup_id = ?
+                order by candidates.candidate_rank
+                """,
+                [lookup_id],
+            ).fetchall()
+
+        resolution = resolve_candidates(
+            lookup[1],
+            lookup[0],
+            tuple(TmdbCandidate(*row) for row in rows),
+        )
+        resolution_id = str(uuid4())
+        resolved_at = resolution_timestamp(resolved_at)
+        winner = resolution.winner
+        is_matched = resolution.status is ResolutionStatus.MATCHED
+        with duckdb.connect(str(self.path)) as connection:
+            connection.begin()
+            try:
+                connection.execute(
+                    """
+                    insert into tmdb_resolutions values (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    )
+                    """,
+                    [
+                        resolution_id,
+                        lookup_id,
+                        scoring_version,
+                        resolution.status.value,
+                        resolution.reason.value,
+                        winner.candidate.rank if winner else None,
+                        winner.candidate.tmdb_id if winner and is_matched else None,
+                        winner.candidate.media_type if winner and is_matched else None,
+                        winner.total_score if winner else None,
+                        resolution.runner_up_score,
+                        resolution.score_margin,
+                        resolved_at,
+                    ],
+                )
+                if resolution.scores:
+                    connection.executemany(
+                        """
+                        insert into tmdb_candidate_scores
+                        values (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        [
+                            (
+                                resolution_id,
+                                score.candidate.rank,
+                                score.candidate.tmdb_id,
+                                score.title_score,
+                                score.year_score,
+                                score.total_score,
+                                score.score_rank,
+                            )
+                            for score in resolution.scores
+                        ],
+                    )
+                connection.commit()
+            except Exception:
+                connection.rollback()
+                raise
+        return PersistedTmdbResolution(
+            resolution_id,
+            lookup_id,
+            scoring_version,
+            resolved_at,
+            resolution,
+        )

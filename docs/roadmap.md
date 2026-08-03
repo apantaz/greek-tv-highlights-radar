@@ -35,9 +35,16 @@
 
 - [x] Normalize Greek and international titles deterministically
 - [x] Retrieve and cache TMDB candidates with immutable raw responses
-- [ ] Score matches with explainable confidence and manual overrides
+- [x] Score candidates with conservative automatic resolution and unresolved outcomes
 
-## Milestone 5 — Analytics product
+## Milestone 5 — Matched entity metadata
+
+- [ ] Retrieve full details only for confidently matched TMDB entities
+- [ ] Cache stable entity metadata by media type, TMDB ID, and language
+- [ ] Snapshot mutable voting and popularity metrics on a bounded refresh interval
+- [ ] Expose resolved entity metadata through tested dbt models
+
+## Milestone 6 — Analytics product
 
 - [ ] Rank transparent daily highlights
 - [ ] Build archive search and pipeline-status views in Streamlit

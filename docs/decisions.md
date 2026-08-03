@@ -136,3 +136,13 @@ source titles and production-year evidence can differ. Each lookup therefore app
 a context row linked to the selected cached search. This avoids duplicating API
 responses without discarding the observation-specific evidence required for
 explainable candidate scoring.
+
+## ADR-017
+Entity resolution is conservative, automatic, and allowed to remain unresolved.
+
+Scoring version `v1` uses deterministic title similarity and explicit production-year
+evidence. A match must clear both a confidence threshold and a winner-margin threshold.
+Popularity and vote counts are excluded because they are mutable and do not prove
+identity. Weak, tied, and missing results persist as unresolved rather than being
+forced into a match. The project intentionally has no manual review or override path,
+keeping execution unattended and reproducible.

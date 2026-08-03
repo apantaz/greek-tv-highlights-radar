@@ -170,17 +170,25 @@ def _search_tmdb(
         result.search_id,
         used_query_override=query_override is not None,
     )
+    persisted_resolution = repository.resolve_lookup(lookup.lookup_id)
+    resolution = persisted_resolution.resolution
 
     print(
         f"query={result.search_query!r} language={result.language} "
         f"status={cache_status} candidates={len(result.candidates)} "
         f"lookup_id={lookup.lookup_id}"
     )
+    print(
+        f"resolution={resolution.status.value} reason={resolution.reason.value} "
+        f"score_margin={resolution.score_margin}"
+    )
     for candidate in result.candidates:
+        score = next(item for item in resolution.scores if item.candidate.rank == candidate.rank)
         year = candidate.release_date.year if candidate.release_date else "-"
         print(
             f"{candidate.rank:>2}  {candidate.media_type:<5} "
-            f"tmdb_id={candidate.tmdb_id:<8} year={year}  {candidate.title}"
+            f"tmdb_id={candidate.tmdb_id:<8} year={year} "
+            f"score={score.total_score:>6.2f} rank={score.score_rank:<2} {candidate.title}"
         )
 
 
