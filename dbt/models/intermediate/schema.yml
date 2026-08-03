@@ -122,3 +122,271 @@ models:
         description: "{{ doc('int_current_broadcasts_ingestion_completed_at') }}"
         data_tests:
           - not_null
+
+  - name: int_latest_tmdb_resolutions
+    description: "{{ doc('int_latest_tmdb_resolutions') }}"
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "status != 'matched' or (tmdb_id is not null and media_type is not null)"
+    columns:
+      - name: resolution_id
+        description: "{{ doc('int_tmdb_resolution_id') }}"
+        data_tests: [not_null, unique]
+      - name: lookup_id
+        description: "{{ doc('int_tmdb_lookup_id') }}"
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('raw_tmdb_lookup_contexts')
+                field: lookup_id
+      - name: scoring_version
+        description: "{{ doc('int_tmdb_scoring_version') }}"
+        data_tests: [not_null]
+      - name: status
+        description: "{{ doc('int_tmdb_resolution_status') }}"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments: {values: [matched, unresolved]}
+      - name: reason
+        description: "{{ doc('int_tmdb_resolution_reason') }}"
+        data_tests: [not_null]
+      - name: winning_candidate_rank
+        description: "{{ doc('int_tmdb_winning_candidate_rank') }}"
+      - name: tmdb_id
+        description: "{{ doc('int_tmdb_id') }}"
+      - name: media_type
+        description: "{{ doc('int_tmdb_media_type') }}"
+        data_tests:
+          - accepted_values:
+              arguments: {values: [movie, tv]}
+              config: {where: "media_type is not null"}
+      - name: winning_score
+        description: "{{ doc('int_tmdb_winning_score') }}"
+      - name: runner_up_score
+        description: "{{ doc('int_tmdb_runner_up_score') }}"
+      - name: score_margin
+        description: "{{ doc('int_tmdb_score_margin') }}"
+      - name: resolved_at
+        description: "{{ doc('int_tmdb_resolved_at') }}"
+        data_tests: [not_null]
+
+  - name: int_latest_tmdb_entity_details
+    description: "{{ doc('int_latest_tmdb_entity_details') }}"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [media_type, tmdb_id, language]
+    columns:
+      - name: entity_detail_id
+        description: "{{ doc('int_tmdb_entity_detail_id') }}"
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('raw_tmdb_entity_details')
+                field: entity_detail_id
+      - name: tmdb_id
+        description: "{{ doc('int_tmdb_id') }}"
+        data_tests: [not_null]
+      - name: media_type
+        description: "{{ doc('int_tmdb_media_type') }}"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments: {values: [movie, tv]}
+      - name: language
+        description: "{{ doc('int_tmdb_language') }}"
+        data_tests: [not_null]
+      - name: title
+        description: "{{ doc('int_tmdb_entity_title') }}"
+        data_tests: [not_null, dbt_utils.not_empty_string]
+      - name: original_title
+        description: "{{ doc('int_tmdb_original_title') }}"
+        data_tests: [not_null]
+      - name: original_language
+        description: "{{ doc('int_tmdb_original_language') }}"
+      - name: release_date
+        description: "{{ doc('int_tmdb_release_date') }}"
+      - name: overview
+        description: "{{ doc('int_tmdb_overview') }}"
+      - name: tagline
+        description: "{{ doc('int_tmdb_tagline') }}"
+      - name: runtime_minutes
+        description: "{{ doc('int_tmdb_runtime_minutes') }}"
+      - name: status
+        description: "{{ doc('int_tmdb_entity_status') }}"
+      - name: homepage
+        description: "{{ doc('int_tmdb_homepage') }}"
+      - name: imdb_id
+        description: "{{ doc('int_tmdb_imdb_id') }}"
+      - name: genres_json
+        description: "{{ doc('int_tmdb_genres_json') }}"
+        data_tests: [not_null]
+      - name: production_countries_json
+        description: "{{ doc('int_tmdb_production_countries_json') }}"
+        data_tests: [not_null]
+      - name: production_companies_json
+        description: "{{ doc('int_tmdb_production_companies_json') }}"
+        data_tests: [not_null]
+      - name: spoken_languages_json
+        description: "{{ doc('int_tmdb_spoken_languages_json') }}"
+        data_tests: [not_null]
+      - name: retrieved_at
+        description: "{{ doc('int_tmdb_entity_retrieved_at') }}"
+        data_tests: [not_null]
+      - name: response_json
+        description: "{{ doc('int_tmdb_response_json') }}"
+        data_tests: [not_null]
+
+  - name: int_latest_tmdb_entity_metrics
+    description: "{{ doc('int_latest_tmdb_entity_metrics') }}"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [media_type, tmdb_id]
+    columns:
+      - name: metric_observation_id
+        description: "{{ doc('int_tmdb_metric_observation_id') }}"
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('raw_tmdb_entity_metric_observations')
+                field: metric_observation_id
+      - name: entity_detail_id
+        description: "{{ doc('int_tmdb_entity_detail_id') }}"
+        data_tests: [not_null]
+      - name: tmdb_id
+        description: "{{ doc('int_tmdb_id') }}"
+        data_tests: [not_null]
+      - name: media_type
+        description: "{{ doc('int_tmdb_media_type') }}"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments: {values: [movie, tv]}
+      - name: popularity
+        description: "{{ doc('int_tmdb_popularity') }}"
+      - name: vote_average
+        description: "{{ doc('int_tmdb_vote_average') }}"
+      - name: vote_count
+        description: "{{ doc('int_tmdb_vote_count') }}"
+      - name: observed_at
+        description: "{{ doc('int_tmdb_metrics_observed_at') }}"
+        data_tests: [not_null]
+
+  - name: int_resolved_programmes
+    description: "{{ doc('int_resolved_programmes') }}"
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "resolution_status != 'unresolved' or entity_detail_id is null"
+    columns:
+      - name: lookup_id
+        description: "{{ doc('int_tmdb_lookup_id') }}"
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('raw_tmdb_lookup_contexts')
+                field: lookup_id
+      - name: source_title
+        description: "{{ doc('int_tmdb_source_title') }}"
+        data_tests: [not_null]
+      - name: normalized_source_title
+        description: "{{ doc('int_tmdb_normalized_source_title') }}"
+        data_tests: [not_null]
+      - name: production_year
+        description: "{{ doc('int_tmdb_production_year') }}"
+      - name: query_titles_json
+        description: "{{ doc('int_tmdb_query_titles_json') }}"
+        data_tests: [not_null]
+      - name: used_query_override
+        description: "{{ doc('int_tmdb_used_query_override') }}"
+        data_tests: [not_null]
+      - name: search_id
+        description: "{{ doc('int_tmdb_search_id') }}"
+        data_tests: [not_null]
+      - name: search_query
+        description: "{{ doc('int_tmdb_search_query') }}"
+        data_tests: [not_null]
+      - name: language
+        description: "{{ doc('int_tmdb_language') }}"
+        data_tests: [not_null]
+      - name: lookup_created_at
+        description: "{{ doc('int_tmdb_lookup_created_at') }}"
+        data_tests: [not_null]
+      - name: resolution_id
+        description: "{{ doc('int_tmdb_resolution_id') }}"
+      - name: scoring_version
+        description: "{{ doc('int_tmdb_scoring_version') }}"
+      - name: resolution_status
+        description: "{{ doc('int_tmdb_resolution_status') }}"
+        data_tests:
+          - accepted_values:
+              arguments: {values: [matched, unresolved]}
+      - name: resolution_reason
+        description: "{{ doc('int_tmdb_resolution_reason') }}"
+      - name: winning_candidate_rank
+        description: "{{ doc('int_tmdb_winning_candidate_rank') }}"
+      - name: tmdb_id
+        description: "{{ doc('int_tmdb_id') }}"
+      - name: media_type
+        description: "{{ doc('int_tmdb_media_type') }}"
+      - name: winning_score
+        description: "{{ doc('int_tmdb_winning_score') }}"
+      - name: runner_up_score
+        description: "{{ doc('int_tmdb_runner_up_score') }}"
+      - name: score_margin
+        description: "{{ doc('int_tmdb_score_margin') }}"
+      - name: resolved_at
+        description: "{{ doc('int_tmdb_resolved_at') }}"
+      - name: entity_detail_id
+        description: "{{ doc('int_tmdb_entity_detail_id') }}"
+      - name: entity_title
+        description: "{{ doc('int_tmdb_entity_title') }}"
+      - name: original_title
+        description: "{{ doc('int_tmdb_original_title') }}"
+      - name: original_language
+        description: "{{ doc('int_tmdb_original_language') }}"
+      - name: release_date
+        description: "{{ doc('int_tmdb_release_date') }}"
+      - name: overview
+        description: "{{ doc('int_tmdb_overview') }}"
+      - name: tagline
+        description: "{{ doc('int_tmdb_tagline') }}"
+      - name: runtime_minutes
+        description: "{{ doc('int_tmdb_runtime_minutes') }}"
+      - name: entity_status
+        description: "{{ doc('int_tmdb_entity_status') }}"
+      - name: homepage
+        description: "{{ doc('int_tmdb_homepage') }}"
+      - name: imdb_id
+        description: "{{ doc('int_tmdb_imdb_id') }}"
+      - name: genres_json
+        description: "{{ doc('int_tmdb_genres_json') }}"
+      - name: production_countries_json
+        description: "{{ doc('int_tmdb_production_countries_json') }}"
+      - name: production_companies_json
+        description: "{{ doc('int_tmdb_production_companies_json') }}"
+      - name: spoken_languages_json
+        description: "{{ doc('int_tmdb_spoken_languages_json') }}"
+      - name: entity_retrieved_at
+        description: "{{ doc('int_tmdb_entity_retrieved_at') }}"
+      - name: metric_observation_id
+        description: "{{ doc('int_tmdb_metric_observation_id') }}"
+      - name: popularity
+        description: "{{ doc('int_tmdb_popularity') }}"
+      - name: vote_average
+        description: "{{ doc('int_tmdb_vote_average') }}"
+      - name: vote_count
+        description: "{{ doc('int_tmdb_vote_count') }}"
+      - name: metrics_observed_at
+        description: "{{ doc('int_tmdb_metrics_observed_at') }}"

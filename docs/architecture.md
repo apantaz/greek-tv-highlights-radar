@@ -78,6 +78,13 @@ The intermediate layer ranks successful runs within each
 `int_current_broadcasts` joins observations only to those selected runs, providing a
 deterministic current schedule without deleting superseded history.
 
+The enrichment intermediate layer independently selects one latest resolution per
+lookup, one latest localized detail response per TMDB identity and language, and one
+latest metric observation per TMDB identity. `int_resolved_programmes` left-joins
+those states at lookup grain, preserving pending and unresolved evidence with null
+entity metadata. It does not infer a broadcast relationship from title text; a direct
+broadcast-to-lookup lineage key is required before enriching the broadcast fact.
+
 The mart layer materializes three consumer-facing tables. `dim_channels` provides a
 stable source-and-channel key, `fct_current_broadcasts` adds Athens-local schedule
 attributes at programme-observation grain, and `mart_daily_channel_schedule`

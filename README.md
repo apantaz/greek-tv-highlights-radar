@@ -16,11 +16,12 @@ latest successful schedules into documented business-facing tables.
 
 The warehouse includes tested ingestion and enrichment raw views, schedule
 intermediate views, a channel dimension, a current-broadcast fact, and a daily
-schedule mart. The complete dbt graph contains 14 models protected by 191 data tests.
+schedule mart. The complete dbt graph contains 18 models protected by 242 data tests.
 
-Current development projects all seven enrichment relations through a documented,
-tested dbt raw boundary. The next delivery derives latest resolution, entity-detail,
-and metric state through intermediate models. The Python suite contains 100 tests.
+Current development derives latest resolution, localized entity-detail, and mutable
+metric state through four enrichment intermediate models. The next delivery adds
+explicit broadcast-to-lookup lineage before publishing enrichment marts. The Python
+suite contains 100 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -209,8 +210,8 @@ the project itself, while `require-dbt-version` constrains the dbt Core runtime.
 The ingestion and enrichment tables are declared as documented dbt sources,
 establishing the read-only boundary between Python and SQL transformation. The
 current dbt graph transforms ingestion sources through the complete schedule
-warehouse and projects every enrichment source into a tested raw view. Enrichment
-intermediate and mart models are the next warehouse deliveries.
+warehouse and projects enrichment sources through tested raw and current-state
+intermediate views. Enrichment marts are the next warehouse delivery.
 
 Run dbt directly from its project directory:
 
@@ -366,8 +367,9 @@ order by media_type, tmdb_id, observed_at;
   pushes.
 - The raw warehouse layer has explicit columns, persisted documentation, and 110 data
   tests covering ingestion and enrichment source contracts.
-- The intermediate layer derives current state deterministically and adds 29 tests
-  for grain, lineage, required attributes, and temporal validity.
+- The intermediate layer derives schedule and enrichment current state
+  deterministically and adds 80 tests for grain, lineage, required attributes, and
+  temporal validity.
 - The mart layer exposes Athens-local schedule analytics through a channel dimension,
   programme fact, and daily summary protected by 52 additional tests.
 - TMDB searches retain immutable raw responses and typed candidates without silently
