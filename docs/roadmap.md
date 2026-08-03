@@ -34,7 +34,7 @@
 ## Milestone 4 — Enrichment and entity resolution
 
 - [x] Normalize Greek and international titles deterministically
-- [ ] Retrieve and cache TMDB candidates
+- [x] Retrieve and cache TMDB candidates with immutable raw responses
 - [ ] Score matches with explainable confidence and manual overrides
 
 ## Milestone 5 — Analytics product

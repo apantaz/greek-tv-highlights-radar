@@ -56,3 +56,73 @@ sources:
             description: Upstream page from which the observation was parsed.
           - name: retrieved_at
             description: UTC timestamp at which the source response was retrieved.
+
+  - name: enrichment
+    description: >-
+      Append-only external metadata searches and candidates written by the Python
+      enrichment pipeline. No candidate is treated as an accepted entity match.
+    schema: main
+    tables:
+      - name: tmdb_searches
+        description: One cached raw TMDB response for a normalized title and language.
+        columns:
+          - name: search_id
+            description: Unique identifier for one external API request.
+          - name: normalized_title
+            description: Canonical title used for exact cache lookup.
+          - name: search_query
+            description: Exact human-readable title sent to the TMDB API.
+          - name: language
+            description: TMDB response language requested by the client.
+          - name: retrieved_at
+            description: UTC timestamp at which the response was retrieved.
+          - name: response_json
+            description: Complete raw response retained for audit and reprocessing.
+
+      - name: tmdb_lookup_contexts
+        description: Source-title evidence linked to the TMDB search used for scoring.
+        columns:
+          - name: lookup_id
+            description: Unique identifier for one source-title lookup attempt.
+          - name: source_title
+            description: Complete programme title preserved from the schedule.
+          - name: normalized_source_title
+            description: Canonical source-title identity used for comparison.
+          - name: production_year
+            description: Production year explicitly extracted from source text.
+          - name: query_titles_json
+            description: Ordered title variants explicitly found in the source.
+          - name: used_query_override
+            description: Whether a manually supplied query replaced automatic variants.
+          - name: search_id
+            description: Cached TMDB search selected for later candidate scoring.
+          - name: created_at
+            description: UTC timestamp at which the lookup context was recorded.
+
+      - name: tmdb_candidates
+        description: Supported movie and TV candidates parsed from one TMDB search.
+        columns:
+          - name: search_id
+            description: TMDB search that returned the candidate.
+          - name: candidate_rank
+            description: Stable position among supported candidates in the response.
+          - name: tmdb_id
+            description: TMDB entity identifier, interpreted with media_type.
+          - name: media_type
+            description: Candidate entity type; movie or tv.
+          - name: title
+            description: Candidate display title in the requested response language.
+          - name: original_title
+            description: Candidate title in its original language.
+          - name: original_language
+            description: ISO language code supplied by TMDB when available.
+          - name: release_date
+            description: Movie release date or TV first-air date when available.
+          - name: overview
+            description: Candidate overview supplied by TMDB when available.
+          - name: popularity
+            description: TMDB popularity value at retrieval time.
+          - name: vote_average
+            description: TMDB average vote value at retrieval time.
+          - name: vote_count
+            description: TMDB vote count at retrieval time.

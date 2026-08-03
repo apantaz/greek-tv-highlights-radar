@@ -104,3 +104,35 @@ search value and extracts only explicit leading content ratings and trailing rep
 markers. It does not infer programme type, season, or alternate-title meaning. This
 keeps future candidate matching reproducible, explainable, and auditable against the
 original schedule observation.
+
+## ADR-014
+TMDB responses and candidates are cached append-only before entity resolution.
+
+The canonical normalized title and response language form the exact cache lookup,
+while the API receives and records a human-readable query with accents preserved. An
+explicit override can use an international title without changing source evidence. A
+cache miss stores the complete raw multi-search response and ordered, typed movie and
+television candidates in one transaction; an explicit refresh creates new history.
+People and malformed results remain auditable in the raw JSON but do not enter
+candidate rows. No returned rank is interpreted as an accepted match. This limits
+network usage while keeping future scoring reproducible against the evidence
+available at retrieval time.
+
+## ADR-015
+Only explicit schedule metadata becomes automatic title evidence.
+
+Latin-script titles supplied in parentheses or leading description brackets become
+additional TMDB search variants, and stated production years are retained for later
+scoring. The source site's IMDb menu is not an identifier: it constructs a Google
+`site:imdb.com` query from the same displayed title. Google result order is therefore
+excluded from the deterministic pipeline. Missing international titles remain
+unresolved or require an explicit override rather than an inferred translation.
+
+## ADR-016
+Source lookup context is separate from the reusable TMDB response cache.
+
+The same external query may support multiple schedule observations, while their
+source titles and production-year evidence can differ. Each lookup therefore appends
+a context row linked to the selected cached search. This avoids duplicating API
+responses without discarding the observation-specific evidence required for
+explainable candidate scoring.

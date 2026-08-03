@@ -31,10 +31,45 @@ ProgrammaTileorasis.gr
 
 The source adapter discovers the free channels advertised by the upstream source at
 runtime and can ingest the complete catalog with isolated per-channel failures. TMDB
-enrichment begins with deterministic title normalization that preserves the source
-value while producing an accent- and punctuation-neutral candidate-search value.
-Candidate retrieval, entity matching, recommendations, and Streamlit follow now that
-the ingestion and analytics boundaries are reliable.
+enrichment preserves each source title, produces a deterministic candidate-search
+value, and caches typed TMDB movie and TV candidates with their raw API evidence.
+Entity matching, recommendations, and Streamlit follow now that the ingestion,
+analytics, and external-metadata boundaries are reliable.
+
+### TMDB candidate cache
+
+Set a private TMDB API Read Access Token in your shell, then retrieve candidates for
+one source title:
+
+```bash
+export TMDB_API_TOKEN="your-read-access-token"
+greek-tv tmdb-search --title "Η Μάνα του 10αριού"
+```
+
+The command normalizes the title, searches TMDB for movie and TV results, and stores
+the raw response plus every supported candidate in `data/greek_tv.duckdb`. It also
+records a lookup context containing the source title, extracted production year,
+ordered query variants, and selected search. Repeating the same title and language
+uses the local cache without requiring the token or a network request. Use `--refresh`
+to append a new retrieval, or `--language en-US` to request another response language.
+Never commit the token; `.env` files are ignored.
+
+The API query preserves accents and readable punctuation while the cache identity uses
+the canonical normalized form. Parenthesized Latin titles are tried automatically
+before the localized title, so source evidence can resolve without manual rewriting:
+
+```bash
+greek-tv tmdb-search \
+  --title "Η Μάνα του 10αριού (La Mama del 10)" \
+  --refresh
+```
+
+Some descriptions begin with a bracketed international title. Pass the source
+description with `--description` when testing one title manually. `--query` remains an
+explicit fallback for records whose source text contains insufficient evidence.
+
+Candidate rank records API response order only. It is not an accepted entity match or
+a recommendation score.
 
 ## Quick start
 
@@ -159,6 +194,17 @@ select
     title
 from current_broadcasts
 order by starts_at;
+
+select
+    searches.normalized_title,
+    candidates.candidate_rank,
+    candidates.media_type,
+    candidates.tmdb_id,
+    candidates.title,
+    candidates.release_date
+from tmdb_searches as searches
+inner join tmdb_candidates as candidates using (search_id)
+order by searches.retrieved_at desc, candidates.candidate_rank;
 ```
 
 ## Engineering properties
@@ -184,6 +230,8 @@ order by starts_at;
   for grain, lineage, required attributes, and temporal validity.
 - The mart layer exposes Athens-local schedule analytics through a channel dimension,
   programme fact, and daily summary protected by 52 additional tests.
+- TMDB searches retain immutable raw responses and typed candidates without silently
+  treating API response order as an accepted entity match.
 - CI runs Ruff, pytest, and dbt foundation validation on every pull request and push
   to `main`.
 
@@ -199,3 +247,11 @@ recorded and fail loudly rather than silently storing incomplete data.
 See the [data model and ERD](docs/data-model.md),
 [architecture](docs/architecture.md), [decisions](docs/decisions.md), and the
 [roadmap](docs/roadmap.md) for design context.
+
+## Credits
+
+Schedule data is collected from
+[ProgrammaTileorasis.gr](https://programmatileorasis.gr/). External movie and
+television metadata is supplied by [TMDB](https://www.themoviedb.org/).
+
+This product uses the TMDB API but is not endorsed or certified by TMDB.

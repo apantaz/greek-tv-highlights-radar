@@ -39,6 +39,26 @@ def test_ingest_parser_accepts_dynamic_channel_slug():
     assert args.channel == "channel-200"
 
 
+def test_tmdb_search_parser_exposes_language_and_refresh_controls():
+    args = cli.build_parser().parse_args(
+        [
+            "tmdb-search",
+            "--title",
+            "Το Σόι σου",
+            "--query",
+            "To Soi Sou",
+            "--language",
+            "en-US",
+            "--refresh",
+        ]
+    )
+
+    assert args.title == "Το Σόι σου"
+    assert args.query == "To Soi Sou"
+    assert args.language == "en-US"
+    assert args.refresh is True
+
+
 def batch_result(*, failed: bool) -> BatchIngestionResult:
     results = [
         ChannelIngestionResult(
