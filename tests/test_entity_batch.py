@@ -35,6 +35,7 @@ class FakeDetailsClient:
             status="Released",
             homepage=None,
             imdb_id=f"tt{tmdb_id:07d}",
+            poster_path=f"/entity-{tmdb_id}.jpg",
             genres=("Drama",),
             production_countries=("US",),
             production_companies=(),

@@ -224,6 +224,8 @@ models:
         description: "{{ doc('int_tmdb_homepage') }}"
       - name: imdb_id
         description: "{{ doc('int_tmdb_imdb_id') }}"
+      - name: poster_path
+        description: "{{ doc('int_tmdb_poster_path') }}"
       - name: genres_json
         description: "{{ doc('int_tmdb_genres_json') }}"
         data_tests: [not_null]

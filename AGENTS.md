@@ -25,9 +25,12 @@ The implemented platform currently:
 14. Publishes mutable TMDB popularity and voting history as an analytical fact.
 15. Measures enrichment coverage by channel and schedule date.
 16. Ranks daily highlights through a versioned and decomposable scoring policy.
+17. Presents daily highlights and their ranking evidence through a read-only
+    Streamlit application.
+18. Displays TMDB poster assets with an offline fallback and explicit attribution.
 
-The roadmap next adds transparent highlight ranking and a Streamlit analytics
-application incrementally.
+The roadmap next expands the Streamlit application with archive search, programme
+details, enrichment coverage, and pipeline status.
 
 The project is intentionally designed as a production-quality portfolio that demonstrates modern Analytics Engineering and Data Engineering practices.
 
@@ -61,12 +64,12 @@ Current stack:
 - Ruff
 - pre-commit and Commitizen
 - dbt-checkpoint
+- Streamlit
 - GitHub Actions
 
 Planned additions:
 
 - SQLFluff
-- Streamlit
 
 ---
 

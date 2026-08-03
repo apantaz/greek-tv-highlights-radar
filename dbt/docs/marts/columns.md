@@ -11,6 +11,7 @@
 {% docs mart_daily_highlights_original_title %}Canonical programme title in its original language.{% enddocs %}
 {% docs mart_daily_highlights_release_year %}Release or first-air year when supplied by TMDB.{% enddocs %}
 {% docs mart_daily_highlights_imdb_id %}IMDb identifier supplied by TMDB when available.{% enddocs %}
+{% docs mart_daily_highlights_poster_path %}Relative TMDB poster path used by presentation clients.{% enddocs %}
 {% docs mart_daily_highlights_genres_json %}Complete canonical genre collection retained as JSON.{% enddocs %}
 {% docs mart_daily_highlights_metric_observation_id %}Latest TMDB metric observation used by ranking version `v1`.{% enddocs %}
 {% docs mart_daily_highlights_popularity %}Raw TMDB popularity value used by the popularity component.{% enddocs %}
@@ -145,6 +146,10 @@ Official homepage URL reported by TMDB, when available.
 
 {% docs dim_programmes_imdb_id %}
 IMDb identifier reported by TMDB, when available.
+{% enddocs %}
+
+{% docs dim_programmes_poster_path %}
+Relative TMDB poster asset path, when available.
 {% enddocs %}
 
 {% docs dim_programmes_genres_json %}

@@ -211,3 +211,15 @@ zero. Schedule time is not treated as quality, and no manual editorial override
 exists. Deterministic tie-breaking uses component scores, schedule time, and
 observation ID. Rankings intentionally reflect the latest available mutable metrics;
 the metric timestamp and policy version make changes across rebuilds explicit.
+
+## ADR-024
+Poster presentation uses retained TMDB paths and remote TMDB assets.
+
+The complete entity response already contains the selected localized `poster_path`,
+so dbt projects it without issuing a separate image API request. Python persists the
+typed path for future retrievals and non-destructively backfills initialized legacy
+tables from immutable response JSON. Presentation constructs the documented `w500`
+TMDB asset URL while retaining a local placeholder for missing posters. Image binaries
+are not duplicated in DuckDB or Git. The UI labels voting metrics as TMDB ratings and
+includes an approved TMDB logo and required attribution notice; an IMDb identifier is
+not misrepresented as an IMDb rating.

@@ -10,7 +10,8 @@ dependencies = [
   "duckdb",
   "pydantic",
   "python-dotenv",
-  "pytz"
+  "pytz",
+  "streamlit>=1.40,<2"
 ]
 
 [project.optional-dependencies]

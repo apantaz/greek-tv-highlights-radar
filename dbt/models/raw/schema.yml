@@ -356,6 +356,8 @@ models:
         description: "{{ doc('raw_tmdb_homepage') }}"
       - name: imdb_id
         description: "{{ doc('raw_tmdb_imdb_id') }}"
+      - name: poster_path
+        description: "{{ doc('raw_tmdb_poster_path') }}"
       - name: genres_json
         description: "{{ doc('raw_tmdb_genres_json') }}"
         data_tests: [not_null]

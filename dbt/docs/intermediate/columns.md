@@ -114,6 +114,7 @@ UTC timestamp at which the selected ingestion run completed successfully.
 {% docs int_tmdb_entity_status %}Latest production or release status supplied by TMDB.{% enddocs %}
 {% docs int_tmdb_homepage %}Official entity homepage when available.{% enddocs %}
 {% docs int_tmdb_imdb_id %}IMDb identifier supplied directly by TMDB when available.{% enddocs %}
+{% docs int_tmdb_poster_path %}Relative poster asset path from the selected TMDB response.{% enddocs %}
 {% docs int_tmdb_genres_json %}Ordered latest genre names serialized as JSON.{% enddocs %}
 {% docs int_tmdb_production_countries_json %}Ordered ISO production-country codes serialized as JSON.{% enddocs %}
 {% docs int_tmdb_production_companies_json %}Ordered production-company names serialized as JSON.{% enddocs %}
