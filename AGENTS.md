@@ -18,9 +18,10 @@ The implemented platform currently:
    schedule evidence.
 8. Enriches distinct current programmes in an idempotent, failure-isolated batch.
 9. Retrieves and caches full metadata only for confidently matched TMDB identities.
+10. Preserves mutable TMDB popularity and voting metrics as bounded historical snapshots.
 
-The roadmap adds historical metric snapshots, dbt enrichment models, and a Streamlit
-analytics application incrementally.
+The roadmap adds dbt enrichment models and a Streamlit analytics application
+incrementally.
 
 The project is intentionally designed as a production-quality portfolio that demonstrates modern Analytics Engineering and Data Engineering practices.
 

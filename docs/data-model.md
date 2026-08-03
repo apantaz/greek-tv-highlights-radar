@@ -61,7 +61,7 @@ while the underlying tables retain the complete ingestion history.
 
 ## dbt source boundary
 
-The repository-local dbt project declares the two ingestion relations and six
+The repository-local dbt project declares the two ingestion relations and seven
 enrichment relations as documented sources in DuckDB's `main` schema. Derived models
 never mutate these Python-owned tables. The current dbt graph transforms the
 ingestion sources; enrichment-source models are planned for Milestone 5.
@@ -88,6 +88,7 @@ erDiagram
     tmdb_lookup_contexts ||--o{ tmdb_resolutions : evaluated_by
     tmdb_resolutions ||--o{ tmdb_candidate_scores : contains
     tmdb_resolutions }o--o{ tmdb_entity_details : accepted_identity
+    tmdb_entity_details ||--|| tmdb_entity_metric_observations : records
 
     tmdb_searches {
         varchar search_id PK
@@ -171,6 +172,17 @@ erDiagram
         timestamptz retrieved_at
         json response_json
     }
+
+    tmdb_entity_metric_observations {
+        varchar metric_observation_id PK
+        varchar entity_detail_id FK
+        integer tmdb_id
+        varchar media_type
+        double popularity
+        double vote_average
+        integer vote_count
+        timestamptz observed_at
+    }
 ```
 
 One `tmdb_searches` row preserves one complete external response. Its zero or more
@@ -178,7 +190,7 @@ One `tmdb_searches` row preserves one complete external response. Its zero or mo
 preserves API response order without claiming that any candidate is the correct
 programme match. `tmdb_lookup_contexts` separately preserves the source title,
 production year, query variants, and selected search so reusable API cache entries do
-not lose observation-specific evidence. dbt declares all six relations as read-only
+not lose observation-specific evidence. dbt declares all seven relations as read-only
 enrichment sources. Each lookup can have append-only versioned resolution runs;
 component scores preserve how every candidate received its final rank.
 
@@ -186,8 +198,13 @@ component scores preserve how every candidate received its final rank.
 by a matched resolution. Its logical relationship uses `(media_type, tmdb_id)` rather
 than a physical foreign key because many resolutions and response languages may share
 one entity. The cache is append-only, and the latest row per identity and language is
-the current stable metadata record. Mutable voting and popularity observations are
-deliberately deferred to a separate historical table.
+the current stable metadata record.
+
+Every entity-details retrieval produces exactly one
+`tmdb_entity_metric_observations` row in the same transaction. Existing detail
+responses are backfilled once using their retrieval timestamp. The observation table
+keeps popularity, vote average, and vote count append-only so their changes can be
+analyzed without treating mutable values as stable entity attributes.
 
 ## Intermediate current-state lineage
 

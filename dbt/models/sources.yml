@@ -219,3 +219,25 @@ sources:
             description: UTC timestamp at which the details response was retrieved.
           - name: response_json
             description: Complete raw details response retained for audit and reprocessing.
+
+      - name: tmdb_entity_metric_observations
+        description: >-
+          Append-only historical observations of mutable popularity and voting
+          metrics for confidently matched TMDB entities.
+        columns:
+          - name: metric_observation_id
+            description: Unique identifier for one entity metric observation.
+          - name: entity_detail_id
+            description: Details retrieval from which the metrics were observed.
+          - name: tmdb_id
+            description: TMDB entity identifier, interpreted with media_type.
+          - name: media_type
+            description: TMDB entity type; movie or tv.
+          - name: popularity
+            description: TMDB popularity value at observation time.
+          - name: vote_average
+            description: TMDB average vote value at observation time.
+          - name: vote_count
+            description: TMDB vote count at observation time.
+          - name: observed_at
+            description: UTC timestamp at which the metrics were retrieved.

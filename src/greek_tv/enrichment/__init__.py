@@ -1,6 +1,10 @@
 """Programme metadata enrichment and entity-resolution helpers."""
 
-from greek_tv.enrichment.entities import CachedTmdbEntity, TmdbEntityRepository
+from greek_tv.enrichment.entities import (
+    CachedTmdbEntity,
+    TmdbEntityRepository,
+    TmdbMetricObservation,
+)
 from greek_tv.enrichment.entity_batch import (
     BatchEntityEnrichmentResult,
     EntityEnrichmentResult,
@@ -8,6 +12,12 @@ from greek_tv.enrichment.entity_batch import (
     enrich_matched_entities,
 )
 from greek_tv.enrichment.evidence import TitleEvidence, extract_title_evidence
+from greek_tv.enrichment.metric_batch import (
+    BatchMetricSnapshotResult,
+    MetricSnapshotResult,
+    MetricSnapshotStatus,
+    snapshot_entity_metrics,
+)
 from greek_tv.enrichment.repository import (
     CachedTmdbSearch,
     PersistedTmdbResolution,
@@ -31,11 +41,14 @@ from greek_tv.enrichment.tmdb import (
 
 __all__ = [
     "BatchEntityEnrichmentResult",
+    "BatchMetricSnapshotResult",
     "CachedTmdbEntity",
     "CachedTmdbSearch",
     "CandidateScore",
     "EntityEnrichmentResult",
     "EntityEnrichmentStatus",
+    "MetricSnapshotResult",
+    "MetricSnapshotStatus",
     "NormalizedTitle",
     "PersistedTmdbResolution",
     "Resolution",
@@ -48,9 +61,11 @@ __all__ = [
     "TmdbEntityDetails",
     "TmdbEntityRepository",
     "TmdbLookupContext",
+    "TmdbMetricObservation",
     "TmdbSearchResponse",
     "enrich_matched_entities",
     "extract_title_evidence",
     "normalize_title",
     "resolve_candidates",
+    "snapshot_entity_metrics",
 ]

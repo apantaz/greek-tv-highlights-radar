@@ -168,3 +168,14 @@ for audit, while normalized columns expose stable descriptive attributes. Popula
 vote average, and vote count are excluded from those columns because they are mutable;
 they require a separate timestamped observation model. Retrieval is sequential and
 failure-isolated, and refreshes append evidence rather than replacing it.
+
+## ADR-020
+Mutable TMDB metrics use bounded, append-only observations.
+
+Popularity, vote average, and vote count describe a point in time and therefore do
+not belong in stable normalized entity columns. Each details response produces one
+metric observation in the same transaction. A configurable maximum age, defaulting
+to 24 hours, controls whether another request is due; fresh batches construct no API
+client. Existing raw detail responses provide a non-destructive historical baseline.
+Operational failures remain isolated, and a zero-hour boundary provides an explicit
+forced-refresh mechanism without a separate mutation path.

@@ -25,6 +25,11 @@ from greek_tv.enrichment.entity_batch import (
     EntityEnrichmentStatus,
     enrich_matched_entities,
 )
+from greek_tv.enrichment.metric_batch import (
+    BatchMetricSnapshotResult,
+    MetricSnapshotStatus,
+    snapshot_entity_metrics,
+)
 from greek_tv.enrichment.service import enrich_title
 from greek_tv.ingestion.batch import BatchIngestionResult, ingest_all_schedules
 from greek_tv.logger import configure_logging
@@ -68,6 +73,13 @@ def build_parser() -> argparse.ArgumentParser:
     enrich_entities.add_argument("--language", default="el-GR")
     enrich_entities.add_argument("--limit", type=_positive_int)
     enrich_entities.add_argument("--refresh", action="store_true")
+    snapshot_metrics = commands.add_parser(
+        "snapshot-metrics",
+        help="snapshot mutable TMDB metrics when cached observations are stale",
+    )
+    snapshot_metrics.add_argument("--language", default="el-GR")
+    snapshot_metrics.add_argument("--max-age-hours", type=_non_negative_float, default=24.0)
+    snapshot_metrics.add_argument("--limit", type=_positive_int)
     return parser
 
 
@@ -102,6 +114,18 @@ def main() -> None:
             refresh=args.refresh,
         )
         _print_entity_enrichment_summary(result)
+        if result.failed:
+            raise SystemExit(1)
+        return
+    if args.command == "snapshot-metrics":
+        result = snapshot_entity_metrics(
+            database_path(),
+            language=args.language,
+            max_age_hours=args.max_age_hours,
+            client_factory=_tmdb_client,
+            limit=args.limit,
+        )
+        _print_metric_snapshot_summary(result)
         if result.failed:
             raise SystemExit(1)
         return
@@ -185,6 +209,19 @@ def _print_entity_enrichment_summary(result: BatchEntityEnrichmentResult) -> Non
         print(f"{item.media_type:<5} {item.tmdb_id:<8} {item.status.value:<9} {detail}")
 
 
+def _print_metric_snapshot_summary(result: BatchMetricSnapshotResult) -> None:
+    print(
+        f"total={result.total} "
+        f"snapshotted={result.count(MetricSnapshotStatus.SNAPSHOTTED)} "
+        f"fresh={result.count(MetricSnapshotStatus.FRESH)} "
+        f"failed={result.failed}"
+    )
+    print()
+    for item in result.entities:
+        detail = item.error_message or ""
+        print(f"{item.media_type:<5} {item.tmdb_id:<8} {item.status.value:<11} {detail}")
+
+
 def _search_tmdb(
     source_title: str,
     description: str | None,
@@ -262,6 +299,13 @@ def _positive_int(value: str) -> int:
     parsed = int(value)
     if parsed < 1:
         raise ValueError("value must be at least 1")
+    return parsed
+
+
+def _non_negative_float(value: str) -> float:
+    parsed = float(value)
+    if parsed < 0:
+        raise ValueError("value must not be negative")
     return parsed
 
 

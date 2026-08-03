@@ -39,6 +39,9 @@ class FakeDetailsClient:
             production_countries=("US",),
             production_companies=(),
             spoken_languages=("en",),
+            popularity=12.5,
+            vote_average=7.5,
+            vote_count=100,
             payload={"id": tmdb_id},
         )
 

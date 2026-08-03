@@ -103,6 +103,24 @@ def test_enrich_entities_parser_exposes_cache_controls():
     assert args.refresh is True
 
 
+def test_snapshot_metrics_parser_exposes_refresh_interval():
+    args = cli.build_parser().parse_args(
+        [
+            "snapshot-metrics",
+            "--language",
+            "en-US",
+            "--max-age-hours",
+            "12.5",
+            "--limit",
+            "5",
+        ]
+    )
+
+    assert args.language == "en-US"
+    assert args.max_age_hours == 12.5
+    assert args.limit == 5
+
+
 def batch_result(*, failed: bool) -> BatchIngestionResult:
     results = [
         ChannelIngestionResult(

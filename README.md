@@ -18,9 +18,9 @@ The warehouse includes tested raw and intermediate views, a channel dimension, a
 current-broadcast fact, and a daily schedule mart. The complete dbt graph contains
 seven models protected by 104 data tests.
 
-The next development delivery will snapshot mutable voting and popularity metrics
-before exposing resolved entity metadata through tested dbt models. The Python suite
-contains 92 tests.
+Current development adds bounded, append-only snapshots of mutable voting and
+popularity metrics. The next delivery exposes resolved entity metadata and metric
+history through tested dbt models. The Python suite contains 100 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -150,8 +150,21 @@ remaining batch, and any operational failure produces exit status `1`.
 Stable normalized columns include titles, overview, dates, runtime, genres,
 production countries and companies, spoken languages, homepage, status, and the
 IMDb ID supplied directly by TMDB. The complete response is retained for audit.
-Mutable popularity and voting metrics are intentionally excluded from these columns;
-they will be modeled as timestamped observations in the next delivery.
+Mutable popularity and voting metrics are intentionally excluded from these stable
+columns and stored as timestamped observations instead.
+
+Snapshot metrics whose latest observation is at least 24 hours old:
+
+```bash
+greek-tv snapshot-metrics
+```
+
+Use `--max-age-hours 12` to change the refresh boundary, `--limit 10` for a controlled
+run, or `--max-age-hours 0` to force a new observation. Fresh entities make no API
+request, and a fully fresh run does not require the token. Each new details response
+and its metric observation are committed atomically; failures remain isolated by
+entity. Existing `v0.6.0` detail responses are backfilled non-destructively on first
+use.
 
 ## Quick start
 
@@ -322,6 +335,16 @@ qualify row_number() over (
     order by retrieved_at desc, entity_detail_id desc
 ) = 1
 order by media_type, title;
+
+select
+    media_type,
+    tmdb_id,
+    popularity,
+    vote_average,
+    vote_count,
+    observed_at
+from tmdb_entity_metric_observations
+order by media_type, tmdb_id, observed_at;
 ```
 
 ## Engineering properties
@@ -354,6 +377,8 @@ order by media_type, title;
   programme-level failures.
 - Full entity metadata is retrieved only for accepted matches and cached by stable
   TMDB identity and response language.
+- Mutable TMDB popularity and voting metrics are preserved as bounded, append-only
+  historical observations.
 - CI runs Ruff, pytest, and dbt foundation validation on every pull request and push
   to `main`.
 
@@ -367,9 +392,8 @@ HTML is an external contract and may change; structural and quality failures are
 recorded and fail loudly rather than silently storing incomplete data.
 
 TMDB enrichment retains search responses, candidate metadata, scoring evidence,
-conservative resolution outcomes, and full details for accepted entities. Credits
-are not fetched yet. Changing vote, count, and popularity metrics will be stored as
-timestamped snapshots rather than overwriting history.
+conservative resolution outcomes, full details for accepted entities, and historical
+popularity and voting observations. Credits are not fetched yet.
 
 See the [data model and ERD](docs/data-model.md),
 [architecture](docs/architecture.md), [decisions](docs/decisions.md), and the

@@ -209,8 +209,29 @@ matched tmdb_resolutions
 
 The batch is sequential and failure-isolated. It creates the API client lazily, so a
 fully cached run does not require a token or network access. Normalized entity columns
-exclude mutable popularity and voting metrics; those will be modeled as timestamped
-observations with an explicit refresh policy.
+exclude mutable popularity and voting metrics.
+
+## Historical metric boundary
+
+Popularity, vote average, and vote count are observations rather than stable entity
+attributes. Every new details retrieval appends one metric row atomically with its
+source `tmdb_entity_details` row. A default 24-hour maximum age prevents repeated
+runs from generating unnecessary requests while allowing the boundary to be
+configured explicitly.
+
+```text
+cached matched entity
+  -> latest metric observation
+      -> newer than maximum age: fresh, no API client or request
+      -> stale or forced: retrieve current entity details
+          -> append tmdb_entity_details
+          -> append tmdb_entity_metric_observations in the same transaction
+  -> continue after identity-level failure
+```
+
+Databases containing entity details from before this table was introduced are
+backfilled non-destructively from their retained raw responses and original retrieval
+timestamps. This establishes a historical baseline without new API requests.
 
 The source website's search menu does not expose an IMDb identifier. Its client-side
 JavaScript constructs a Google query in the form `site:imdb.com <displayed title>`.
