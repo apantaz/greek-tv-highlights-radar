@@ -43,16 +43,22 @@ models:
     raw:
       # Combines with the target schema to produce `greek_tv_raw`.
       +schema: raw
+      # Select every raw-layer model with `tag:raw`.
+      +tags: [raw]
 
     # Intermediate models contain reusable transformation and current-state logic.
     intermediate:
       # Combines with the target schema to produce `greek_tv_intermediate`.
       +schema: intermediate
+      # Select every intermediate-layer model with `tag:intermediate`.
+      +tags: [intermediate]
 
     # Mart models expose stable, business-facing analytical interfaces.
     marts:
       # Combines with the target schema to produce `greek_tv_marts`.
       +schema: marts
+      # Select every business-facing model with `tag:marts`.
+      +tags: [marts]
 
 # Place loaded seed files alongside other raw analytical inputs.
 seeds:

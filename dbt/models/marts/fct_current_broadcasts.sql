@@ -1,4 +1,4 @@
-{{ config(materialized='table') }}
+{{ config(materialized='table', tags=['fact']) }}
 
 with broadcasts as (
     select

@@ -92,5 +92,29 @@ Build the complete warehouse through the business-facing marts:
 dbt build --select +path:models/marts
 ```
 
+## Model tags
+
+Layer tags are configured once in `dbt_project.yml`, while model-specific semantic
+roles are declared in the relevant model config. Tags are additive: for example,
+`fct_current_broadcasts` has both `marts` and `fact`.
+
+| Tag | Scope |
+| --- | --- |
+| `raw` | Source-aligned raw models |
+| `intermediate` | Reusable transformation models |
+| `marts` | Business-facing models |
+| `dimension` | Dimension models |
+| `fact` | Fact models |
+| `aggregate` | Aggregated consumer marts |
+
+Use tags as dbt selectors:
+
+```bash
+dbt build --select tag:raw
+dbt build --select tag:intermediate
+dbt build --select tag:marts
+dbt build --select tag:fact
+```
+
 The pre-push hooks use dbt-checkpoint to parse the project, compile changed SQL
 models, and generate the documentation catalog.

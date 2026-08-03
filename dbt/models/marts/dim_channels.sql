@@ -1,4 +1,4 @@
-{{ config(materialized='table') }}
+{{ config(materialized='table', tags=['dimension']) }}
 
 select
     {{ dbt_utils.generate_surrogate_key(['source', 'channel']) }} as channel_key,
