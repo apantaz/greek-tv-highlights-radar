@@ -6,9 +6,10 @@ explainable daily highlights.
 
 ## Current milestone
 
-The latest release, `v0.5.0`, adds deterministic title-evidence extraction,
-immutable TMDB candidate caching, and conservative automatic entity resolution to
-the analytics warehouse built on reliable multi-channel ingestion from
+The `v0.6.0` release adds unattended batch enrichment and full metadata retrieval for
+confidently matched TMDB entities. It builds on deterministic title evidence,
+immutable candidate caching, conservative automatic resolution, and the analytics
+warehouse backed by reliable multi-channel ingestion from
 [ProgrammaTileorasis.gr](https://programmatileorasis.gr/). The source catalog is
 discovered at runtime, ingestion history remains immutable, and dbt transforms the
 latest successful schedules into documented business-facing tables.
@@ -17,8 +18,9 @@ The warehouse includes tested raw and intermediate views, a channel dimension, a
 current-broadcast fact, and a daily schedule mart. The complete dbt graph contains
 seven models protected by 104 data tests.
 
-Current development adds unattended, idempotent batch enrichment and full metadata
-retrieval for confidently matched entities. The Python suite contains 92 tests.
+The next development delivery will snapshot mutable voting and popularity metrics
+before exposing resolved entity metadata through tested dbt models. The Python suite
+contains 92 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -37,6 +39,7 @@ Current programme evidence
   → cached TMDB movie and TV candidates
   → explainable candidate scores
   → matched identity or explicit unresolved outcome
+  → cached full metadata for matched identities only
 ```
 
 The source adapter discovers the free channels advertised by the upstream source at
