@@ -28,8 +28,8 @@
 - [x] Add reproducible direct dbt commands and CI/pre-push validation
 - [x] Add raw models and source-boundary tests
 - [x] Add intermediate latest-successful-run logic
-- [ ] Add dimensional, fact, and initial mart models
-- [ ] Generate dbt documentation and lineage artifacts
+- [x] Add dimensional, fact, and initial mart models
+- [x] Generate dbt documentation and lineage artifacts
 
 ## Milestone 4 — Enrichment and entity resolution
 

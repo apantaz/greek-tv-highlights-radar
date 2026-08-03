@@ -62,10 +62,8 @@ while the underlying tables retain the complete ingestion history.
 ## dbt source boundary
 
 The repository-local dbt project declares `ingestion_runs` and
-`broadcast_observations` as documented sources in DuckDB's `main` schema. No derived
-dbt models exist in this foundation delivery, so the physical ERD above remains
-unchanged. Staging and analytical relations will be added without mutating these
-ingestion-owned tables.
+`broadcast_observations` as documented sources in DuckDB's `main` schema. Derived
+models never mutate these ingestion-owned tables.
 
 The first derived layer adds two views without changing the source relationships:
 
@@ -94,6 +92,21 @@ date. `int_current_broadcasts` retains only observations belonging to those runs
 derived result is semantically equivalent to the ingestion-owned `current_broadcasts`
 view while exposing additional source, schedule-date, observation, and completion
 metadata for downstream models.
+
+## Mart lineage
+
+```mermaid
+flowchart LR
+    current[greek_tv_intermediate.int_current_broadcasts] --> channels[greek_tv_marts.dim_channels]
+    current --> facts[greek_tv_marts.fct_current_broadcasts]
+    channels -->|channel_key| facts
+    facts --> daily[greek_tv_marts.mart_daily_channel_schedule]
+```
+
+`dim_channels` has one row per source and channel. `fct_current_broadcasts` has one
+row per current programme observation and adds Athens-local dates, timestamps,
+duration, midnight behavior, and schedule position. The daily mart aggregates the
+fact to one source, channel, and requested schedule date.
 
 ## Legacy table
 

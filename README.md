@@ -11,10 +11,10 @@ Version `v0.3.0` completed reliable multi-channel ingestion from
 discovered at runtime, each channel receives an isolated ingestion run, and partial
 batch failures remain visible without preventing other channels from completing.
 
-The current delivery advances the `v0.4.0` analytics warehouse with deterministic
-current-schedule logic. Two intermediate views identify the latest successful run per
-source, channel, and schedule date, then expose only its programme observations. The
-new layer adds 29 tests and matches the ingestion-owned current view exactly.
+The current delivery completes the planned `v0.4.0` analytics warehouse. A channel
+dimension, current-broadcast fact, and daily schedule mart turn the deterministic
+current schedule into documented business-facing tables. The complete dbt graph now
+contains seven models protected by 104 data tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -26,6 +26,7 @@ ProgrammaTileorasis.gr
   → documented dbt source boundary
   → tested raw dbt views
   → latest successful runs and current broadcasts
+  → channel dimension, broadcast fact, and daily schedule mart
 ```
 
 The current source adapter discovers the free channels advertised by the upstream
@@ -75,7 +76,8 @@ hooks enforce that compatibility line. The `version` in `dbt_project.yml` descri
 the project itself, while `require-dbt-version` constrains the dbt Core runtime.
 The ingestion tables are declared as documented dbt sources, establishing the
 read-only boundary between Python ingestion and SQL transformation. Tested raw views
-are materialized in `greek_tv_raw` without changing source data.
+and intermediate current-state views feed three tables in `greek_tv_marts` without
+changing source data.
 
 Run dbt directly from its project directory:
 
@@ -178,6 +180,8 @@ order by starts_at;
   tests covering its key source contracts.
 - The intermediate layer derives current state deterministically and adds 29 tests
   for grain, lineage, required attributes, and temporal validity.
+- The mart layer exposes Athens-local schedule analytics through a channel dimension,
+  programme fact, and daily summary protected by 52 additional tests.
 - CI runs Ruff, pytest, and dbt foundation validation on every pull request and push
   to `main`.
 

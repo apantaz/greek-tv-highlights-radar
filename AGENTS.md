@@ -13,6 +13,7 @@ The implemented platform currently:
 3. Stores immutable raw snapshots and observations in DuckDB.
 4. Preserves ingestion history for future analysis.
 5. Declares the ingestion boundary as documented dbt sources.
+6. Builds tested raw, intermediate, dimensional, fact, and mart models.
 
 The roadmap adds dbt transformations, TMDB enrichment, and a Streamlit analytics
 application incrementally.

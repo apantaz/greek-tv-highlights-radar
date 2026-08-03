@@ -1,0 +1,189 @@
+version: 2
+
+models:
+  - name: dim_channels
+    description: "{{ doc('dim_channels') }}"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [source, channel]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "latest_schedule_date >= first_schedule_date"
+    columns:
+      - name: channel_key
+        description: "{{ doc('dim_channels_channel_key') }}"
+        data_tests: [not_null, unique]
+      - name: source
+        description: "{{ doc('dim_channels_source') }}"
+        data_tests: [not_null]
+      - name: channel
+        description: "{{ doc('dim_channels_channel') }}"
+        data_tests: [not_null]
+      - name: first_schedule_date
+        description: "{{ doc('dim_channels_first_schedule_date') }}"
+        data_tests: [not_null]
+      - name: latest_schedule_date
+        description: "{{ doc('dim_channels_latest_schedule_date') }}"
+        data_tests: [not_null]
+      - name: first_observed_at
+        description: "{{ doc('dim_channels_first_observed_at') }}"
+        data_tests: [not_null]
+      - name: latest_observed_at
+        description: "{{ doc('dim_channels_latest_observed_at') }}"
+        data_tests: [not_null]
+
+  - name: fct_current_broadcasts
+    description: "{{ doc('fct_current_broadcasts') }}"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [source, channel, schedule_date, programme_position]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "duration_minutes is null or duration_minutes > 0"
+    columns:
+      - name: observation_id
+        description: "{{ doc('fct_current_broadcasts_observation_id') }}"
+        data_tests: [not_null, unique]
+      - name: broadcast_id
+        description: "{{ doc('fct_current_broadcasts_broadcast_id') }}"
+        data_tests: [not_null]
+      - name: run_id
+        description: "{{ doc('fct_current_broadcasts_run_id') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_latest_successful_ingestion_runs')
+                field: run_id
+      - name: channel_key
+        description: "{{ doc('fct_current_broadcasts_channel_key') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_channels')
+                field: channel_key
+      - name: source
+        description: "{{ doc('fct_current_broadcasts_source') }}"
+        data_tests: [not_null]
+      - name: channel
+        description: "{{ doc('fct_current_broadcasts_channel') }}"
+        data_tests: [not_null]
+      - name: schedule_date
+        description: "{{ doc('fct_current_broadcasts_schedule_date') }}"
+        data_tests: [not_null]
+      - name: broadcast_date
+        description: "{{ doc('fct_current_broadcasts_broadcast_date') }}"
+        data_tests: [not_null]
+      - name: title
+        description: "{{ doc('fct_current_broadcasts_title') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: starts_at
+        description: "{{ doc('fct_current_broadcasts_starts_at') }}"
+        data_tests: [not_null]
+      - name: ends_at
+        description: "{{ doc('fct_current_broadcasts_ends_at') }}"
+      - name: starts_at_local
+        description: "{{ doc('fct_current_broadcasts_starts_at_local') }}"
+        data_tests: [not_null]
+      - name: ends_at_local
+        description: "{{ doc('fct_current_broadcasts_ends_at_local') }}"
+      - name: duration_minutes
+        description: "{{ doc('fct_current_broadcasts_duration_minutes') }}"
+      - name: crosses_midnight
+        description: "{{ doc('fct_current_broadcasts_crosses_midnight') }}"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+                quote: false
+      - name: programme_position
+        description: "{{ doc('fct_current_broadcasts_programme_position') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 1
+      - name: description
+        description: "{{ doc('fct_current_broadcasts_description') }}"
+      - name: source_url
+        description: "{{ doc('fct_current_broadcasts_source_url') }}"
+        data_tests: [not_null]
+      - name: retrieved_at
+        description: "{{ doc('fct_current_broadcasts_retrieved_at') }}"
+        data_tests: [not_null]
+      - name: ingestion_completed_at
+        description: "{{ doc('fct_current_broadcasts_ingestion_completed_at') }}"
+        data_tests: [not_null]
+
+  - name: mart_daily_channel_schedule
+    description: "{{ doc('mart_daily_channel_schedule') }}"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [source, channel, schedule_date]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "programmes_with_known_duration <= programme_count"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "programmes_crossing_midnight <= programme_count"
+    columns:
+      - name: channel_key
+        description: "{{ doc('mart_daily_channel_schedule_channel_key') }}"
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_channels')
+                field: channel_key
+      - name: source
+        description: "{{ doc('mart_daily_channel_schedule_source') }}"
+        data_tests: [not_null]
+      - name: channel
+        description: "{{ doc('mart_daily_channel_schedule_channel') }}"
+        data_tests: [not_null]
+      - name: schedule_date
+        description: "{{ doc('mart_daily_channel_schedule_schedule_date') }}"
+        data_tests: [not_null]
+      - name: programme_count
+        description: "{{ doc('mart_daily_channel_schedule_programme_count') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 1
+      - name: programmes_with_known_duration
+        description: "{{ doc('mart_daily_channel_schedule_programmes_with_known_duration') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+      - name: known_scheduled_minutes
+        description: "{{ doc('mart_daily_channel_schedule_known_scheduled_minutes') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+      - name: first_programme_starts_at_local
+        description: "{{ doc('mart_daily_channel_schedule_first_programme_starts_at_local') }}"
+        data_tests: [not_null]
+      - name: last_programme_ends_at_local
+        description: "{{ doc('mart_daily_channel_schedule_last_programme_ends_at_local') }}"
+      - name: programmes_crossing_midnight
+        description: "{{ doc('mart_daily_channel_schedule_programmes_crossing_midnight') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+      - name: ingestion_completed_at
+        description: "{{ doc('mart_daily_channel_schedule_ingestion_completed_at') }}"
+        data_tests: [not_null]

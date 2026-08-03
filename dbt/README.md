@@ -4,20 +4,14 @@ This directory contains the repository-local dbt project for transforming ingest
 data in DuckDB. Both the project and profile are version-controlled so contributors
 do not need a user-specific `~/.dbt/profiles.yml`.
 
-<<<<<<< Updated upstream
-The project declares the ingestion relations as dbt sources, projects them into two
-tested raw views, and derives the latest successful schedule through two intermediate
-views. Business-facing marts are delivered in subsequent milestones.
-=======
 The project requires dbt Core `>=1.12.0,<1.13.0`. This constraint is declared through
 `require-dbt-version` and mirrored in the development and pre-commit dependencies.
 The separate `version` property is dbt project metadata and does not select the dbt
 Core runtime.
 
-The project declares the ingestion relations as dbt sources and projects them into
-two tested raw views. Intermediate and mart models are delivered in subsequent
-milestones.
->>>>>>> Stashed changes
+The project declares ingestion relations as dbt sources, projects them into tested
+raw views, derives the latest successful schedule through intermediate views, and
+publishes a channel dimension, current-broadcast fact, and daily schedule mart.
 
 The development target uses `greek_tv` as its base schema. dbt combines that base
 with each model folder's custom schema:
@@ -90,6 +84,12 @@ Build the intermediate layer together with its upstream raw dependencies:
 
 ```bash
 dbt build --select +path:models/intermediate
+```
+
+Build the complete warehouse through the business-facing marts:
+
+```bash
+dbt build --select +path:models/marts
 ```
 
 The pre-push hooks use dbt-checkpoint to parse the project, compile changed SQL
