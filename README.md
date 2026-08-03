@@ -11,10 +11,10 @@ Version `v0.3.0` completed reliable multi-channel ingestion from
 discovered at runtime, each channel receives an isolated ingestion run, and partial
 batch failures remain visible without preventing other channels from completing.
 
-The current delivery advances the `v0.4.0` analytics warehouse with its first raw
-models. Two documented views preserve the ingestion grains and expose explicit
-columns, while 23 data tests enforce keys, relationships, required fields, valid run
-states, record counts, and schedule timestamp ordering.
+The current delivery advances the `v0.4.0` analytics warehouse with deterministic
+current-schedule logic. Two intermediate views identify the latest successful run per
+source, channel, and schedule date, then expose only its programme observations. The
+new layer adds 29 tests and matches the ingestion-owned current view exactly.
 
 ```text
 ProgrammaTileorasis.gr
@@ -25,6 +25,7 @@ ProgrammaTileorasis.gr
   → current schedule view
   → documented dbt source boundary
   → tested raw dbt views
+  → latest successful runs and current broadcasts
 ```
 
 The current source adapter discovers the free channels advertised by the upstream
@@ -172,6 +173,8 @@ order by starts_at;
   pushes.
 - The raw warehouse layer has explicit columns, persisted documentation, and 23 data
   tests covering its key source contracts.
+- The intermediate layer derives current state deterministically and adds 29 tests
+  for grain, lineage, required attributes, and temporal validity.
 - CI runs Ruff, pytest, and dbt foundation validation on every pull request and push
   to `main`.
 

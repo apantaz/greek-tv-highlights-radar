@@ -80,6 +80,21 @@ Both views preserve their source grain. dbt tests enforce unique primary identif
 the run-to-observation relationship, required attributes, valid run statuses, and
 basic numerical and temporal expectations.
 
+## Intermediate current-state lineage
+
+```mermaid
+flowchart LR
+    raw_runs[greek_tv_raw.raw_ingestion_runs] --> latest[greek_tv_intermediate.int_latest_successful_ingestion_runs]
+    raw_observations[greek_tv_raw.raw_broadcast_observations] --> current[greek_tv_intermediate.int_current_broadcasts]
+    latest -->|selected run_id| current
+```
+
+`int_latest_successful_ingestion_runs` has one row per source, channel, and schedule
+date. `int_current_broadcasts` retains only observations belonging to those runs. The
+derived result is semantically equivalent to the ingestion-owned `current_broadcasts`
+view while exposing additional source, schedule-date, observation, and completion
+metadata for downstream models.
+
 ## Legacy table
 
 Databases created before the append-only model may also contain `broadcasts`. That
