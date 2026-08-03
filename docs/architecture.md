@@ -123,10 +123,11 @@ their presence is evidence only—not an accepted match.
 
 TMDB retrieval sends a human-readable search title with accents preserved, while its
 canonical normalized form and requested response language act as the cache key. An
-explicit query override supports localized schedule titles without changing their
-source evidence. A cache miss makes one authenticated multi-search request; a cache
-hit returns the latest stored result without network access. Explicit refreshes
-append a new search rather than replacing history.
+explicit query override is retained for diagnostic commands, but unattended
+processing uses only source-derived evidence and leaves insufficient evidence
+unresolved. A cache miss makes one authenticated multi-search request; a cache hit
+returns the latest stored result without network access. Explicit refreshes append a
+new search rather than replacing history.
 
 ```text
 source title

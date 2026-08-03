@@ -1,5 +1,8 @@
 # Roadmap
 
+The latest published release is `v0.5.0`. Current development completes unattended
+batch orchestration before moving to full metadata for confidently matched entities.
+
 ## Milestone 1 — ERT1 vertical slice
 
 - [x] Date-addressable HTTP client
@@ -21,7 +24,7 @@
 - [x] Add representative commercial and public channels
 - [x] Add batch ingestion with isolated per-channel failures
 
-## Milestone 3 — Analytics warehouse foundation
+## Milestone 3 — Analytics warehouse foundation (`v0.4.0`)
 
 - [x] Configure a repository-local dbt-duckdb project
 - [x] Declare ingestion relations as documented dbt sources
@@ -31,7 +34,7 @@
 - [x] Add dimensional, fact, and initial mart models
 - [x] Generate dbt documentation and lineage artifacts
 
-## Milestone 4 — Enrichment and entity resolution
+## Milestone 4 — Enrichment and entity resolution (`v0.5.0`)
 
 - [x] Normalize Greek and international titles deterministically
 - [x] Retrieve and cache TMDB candidates with immutable raw responses
