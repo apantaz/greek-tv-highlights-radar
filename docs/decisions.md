@@ -86,3 +86,11 @@ by completion timestamp, start timestamp, and run identifier. The final tie-brea
 prevents database row order from influencing current state. Observations are joined
 to the selected run IDs, preserving full history upstream while giving marts a stable
 current-schedule interface.
+
+## ADR-012
+Business-facing schedule models are materialized as tables.
+
+The channel dimension, current-broadcast fact, and daily schedule mart are small,
+stable consumer interfaces. Materializing them as tables makes query behavior
+predictable and separates consumers from upstream view execution. Each model declares
+its materialization explicitly; future scale changes should be driven by measurement.

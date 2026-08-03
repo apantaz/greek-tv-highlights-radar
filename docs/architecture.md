@@ -77,6 +77,11 @@ The intermediate layer ranks successful runs within each
 `int_current_broadcasts` joins observations only to those selected runs, providing a
 deterministic current schedule without deleting superseded history.
 
+The mart layer materializes three consumer-facing tables. `dim_channels` provides a
+stable source-and-channel key, `fct_current_broadcasts` adds Athens-local schedule
+attributes at programme-observation grain, and `mart_daily_channel_schedule`
+aggregates those facts to one row per source, channel, and requested date.
+
 ## Data grains
 
 See the [data model](data-model.md) for the current entity-relationship diagram and
@@ -89,6 +94,9 @@ view lineage.
 - `int_latest_successful_ingestion_runs`: dbt-owned latest successful run per
   source/channel/date partition.
 - `int_current_broadcasts`: dbt-owned programme observations for those selected runs.
+- `dim_channels`: one currently represented source and channel.
+- `fct_current_broadcasts`: one current programme observation enriched for analysis.
+- `mart_daily_channel_schedule`: one source/channel/requested-date schedule summary.
 - `broadcasts`: preserved milestone-one table; migrated non-destructively and retained
   for audit compatibility.
 
