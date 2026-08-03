@@ -1,4 +1,4 @@
-{{ config(materialized='table') }}
+{{ config(materialized='table', tags=['aggregate']) }}
 
 select
     channel_key,
