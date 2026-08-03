@@ -47,7 +47,7 @@ repos:
     hooks:
       - id: dbt-parse
         entry: env DBT_DUCKDB_PATH=data/greek_tv.duckdb dbt-parse
-        additional_dependencies: ["dbt-duckdb>=1.10,<1.11"]
+        additional_dependencies: ["dbt-core>=1.12,<1.13", "dbt-duckdb>=1.10,<1.11"]
         args:
           - --global-flags
           - ++log-path
@@ -60,7 +60,7 @@ repos:
         stages: [pre-push]
       - id: dbt-compile
         entry: env DBT_DUCKDB_PATH=data/greek_tv.duckdb dbt-compile
-        additional_dependencies: ["dbt-duckdb>=1.10,<1.11"]
+        additional_dependencies: ["dbt-core>=1.12,<1.13", "dbt-duckdb>=1.10,<1.11"]
         args:
           - --global-flags
           - ++log-path
@@ -74,7 +74,7 @@ repos:
         stages: [pre-push]
       - id: dbt-docs-generate
         entry: env DBT_DUCKDB_PATH=data/greek_tv.duckdb dbt-docs-generate
-        additional_dependencies: ["dbt-duckdb>=1.10,<1.11"]
+        additional_dependencies: ["dbt-core>=1.12,<1.13", "dbt-duckdb>=1.10,<1.11"]
         always_run: true
         pass_filenames: false
         args:

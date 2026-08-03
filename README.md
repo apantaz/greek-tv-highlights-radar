@@ -70,6 +70,9 @@ partial failures visible to schedulers and CI.
 ## dbt warehouse
 
 The repository includes a local dbt project configured for the same DuckDB database.
+It requires dbt Core `1.12.x`; both local development dependencies and isolated Git
+hooks enforce that compatibility line. The `version` in `dbt_project.yml` describes
+the project itself, while `require-dbt-version` constrains the dbt Core runtime.
 The ingestion tables are declared as documented dbt sources, establishing the
 read-only boundary between Python ingestion and SQL transformation. Tested raw views
 are materialized in `greek_tv_raw` without changing source data.
