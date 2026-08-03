@@ -43,6 +43,7 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_all = commands.add_parser("ingest-all", help="fetch and store every channel schedule")
     ingest_all.add_argument("--date", type=date.fromisoformat, required=True, metavar="YYYY-MM-DD")
     commands.add_parser("channels", help="list channels currently advertised by the source")
+    commands.add_parser("tmdb-check", help="validate the configured TMDB read-access token")
     tmdb_search = commands.add_parser(
         "tmdb-search", help="retrieve and cache TMDB candidates for one source title"
     )
@@ -73,6 +74,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     configure_logging()
     args = build_parser().parse_args()
+    if args.command == "tmdb-check":
+        _check_tmdb_connection()
+        return
     if args.command == "tmdb-search":
         _search_tmdb(args.title, args.description, args.query, args.language, args.refresh)
         return
@@ -221,6 +225,15 @@ def _search_tmdb(
             f"tmdb_id={candidate.tmdb_id:<8} year={year} "
             f"score={score.total_score:>6.2f} rank={score.score_rank:<2} {candidate.title}"
         )
+
+
+def _check_tmdb_connection() -> None:
+    try:
+        _tmdb_client().validate_access_token()
+    except (ValueError, httpx.HTTPError) as error:
+        logging.getLogger(__name__).error("TMDB connection failed: %s", error)
+        raise SystemExit(1) from error
+    print("TMDB connection OK: read-access token is valid")
 
 
 def _tmdb_client() -> TmdbClient:

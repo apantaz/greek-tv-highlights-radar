@@ -59,6 +59,19 @@ def test_tmdb_search_parser_exposes_language_and_refresh_controls():
     assert args.refresh is True
 
 
+def test_tmdb_check_reports_valid_connection(monkeypatch, capsys):
+    class ValidClient:
+        def validate_access_token(self) -> None:
+            pass
+
+    monkeypatch.setattr(cli, "_tmdb_client", ValidClient)
+    monkeypatch.setattr("sys.argv", ["greek-tv", "tmdb-check"])
+
+    cli.main()
+
+    assert capsys.readouterr().out.strip() == "TMDB connection OK: read-access token is valid"
+
+
 def test_enrich_parser_exposes_language_and_incremental_limit():
     args = cli.build_parser().parse_args(
         [

@@ -89,6 +89,27 @@ def test_searches_with_bearer_token_and_parses_movie_and_tv_candidates():
     assert response.candidates[1].rank == 2
 
 
+def test_validates_tmdb_read_access_token():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/3/authentication"
+        assert request.headers["Authorization"] == "Bearer secret-token"
+        return httpx.Response(200, request=request, json={"success": True})
+
+    TmdbClient("secret-token", transport=httpx.MockTransport(handler)).validate_access_token()
+
+
+def test_rejects_invalid_tmdb_read_access_token():
+    client = TmdbClient(
+        "invalid-token",
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(401, request=request, json={"success": False})
+        ),
+    )
+
+    with pytest.raises(httpx.HTTPStatusError):
+        client.validate_access_token()
+
+
 def test_retries_transient_tmdb_responses():
     attempts = 0
     delays = []
