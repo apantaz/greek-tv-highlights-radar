@@ -149,6 +149,26 @@ def test_isolates_title_failures_and_continues_batch(tmp_path):
     assert client.queries == [("Broken", "el-GR"), ("Working", "el-GR")]
 
 
+def test_reports_each_programme_as_soon_as_it_completes(tmp_path):
+    path = tmp_path / "batch.duckdb"
+    create_current_programmes(path, [("First", None), ("Second", None)])
+    client = FakeTmdbClient()
+    reported = []
+
+    result = enrich_current_programmes(
+        path,
+        language="el-GR",
+        client_factory=lambda: client,
+        on_programme=lambda item, completed, total: reported.append((item, completed, total)),
+    )
+
+    assert reported == [
+        (result.programmes[0], 1, 2),
+        (result.programmes[1], 2, 2),
+    ]
+    assert [item.source_title for item, _, _ in reported] == ["First", "Second"]
+
+
 def test_filters_current_programmes_by_channel_and_schedule_date(tmp_path):
     path = tmp_path / "batch.duckdb"
     create_current_programmes(path, [("STAR Programme", None)])

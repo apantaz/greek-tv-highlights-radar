@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import date
 from enum import StrEnum
 from pathlib import Path
 
@@ -53,39 +54,42 @@ def enrich_matched_entities(
     client_factory: Callable[[], TmdbClient],
     limit: int | None = None,
     refresh: bool = False,
+    schedule_date: date | None = None,
+    on_entity: Callable[[EntityEnrichmentResult, int, int], None] | None = None,
 ) -> BatchEntityEnrichmentResult:
     """Retrieve or reuse details for every distinct confidently matched identity."""
     if limit is not None and limit < 1:
         raise ValueError("entity enrichment limit must be at least 1")
     TmdbCandidateRepository(database_path).initialize()
     repository = TmdbEntityRepository(database_path)
-    identities = repository.matched_identities()
+    identities = repository.matched_identities(schedule_date=schedule_date)
     if limit is not None:
         identities = identities[:limit]
+    total_entities = len(identities)
     results = []
     client = None
     for media_type, tmdb_id in identities:
         try:
             cached = repository.latest(media_type, tmdb_id, language)
             if cached is not None and not refresh:
-                results.append(
-                    EntityEnrichmentResult(media_type, tmdb_id, EntityEnrichmentStatus.CACHED)
-                )
+                result = EntityEnrichmentResult(media_type, tmdb_id, EntityEnrichmentStatus.CACHED)
+                results.append(result)
+                if on_entity is not None:
+                    on_entity(result, len(results), total_entities)
                 continue
             if client is None:
                 client = client_factory()
             details = client.details(media_type, tmdb_id, language)
             repository.save(details)
-            results.append(
-                EntityEnrichmentResult(media_type, tmdb_id, EntityEnrichmentStatus.RETRIEVED)
-            )
+            result = EntityEnrichmentResult(media_type, tmdb_id, EntityEnrichmentStatus.RETRIEVED)
         except Exception as error:
-            results.append(
-                EntityEnrichmentResult(
-                    media_type,
-                    tmdb_id,
-                    EntityEnrichmentStatus.FAILED,
-                    f"{type(error).__name__}: {error}"[:2000],
-                )
+            result = EntityEnrichmentResult(
+                media_type,
+                tmdb_id,
+                EntityEnrichmentStatus.FAILED,
+                f"{type(error).__name__}: {error}"[:2000],
             )
+        results.append(result)
+        if on_entity is not None:
+            on_entity(result, len(results), total_entities)
     return BatchEntityEnrichmentResult(tuple(results))

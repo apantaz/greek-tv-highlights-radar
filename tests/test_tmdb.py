@@ -60,6 +60,7 @@ def entity_payload():
         "status": "Released",
         "homepage": "https://www.starwars.com/",
         "imdb_id": "tt0076759",
+        "poster_path": "/star-wars.jpg",
         "genres": [{"id": 12, "name": "Adventure"}],
         "production_countries": [{"iso_3166_1": "US", "name": "United States"}],
         "production_companies": [{"id": 1, "name": "Lucasfilm"}],
@@ -146,6 +147,7 @@ def test_retrieves_and_parses_matched_movie_details():
     assert details.title == "Star Wars"
     assert details.runtime_minutes == 121
     assert details.imdb_id == "tt0076759"
+    assert details.poster_path == "/star-wars.jpg"
     assert details.genres == ("Adventure",)
     assert details.production_countries == ("US",)
     assert details.production_companies == ("Lucasfilm",)
@@ -231,6 +233,7 @@ def test_persists_and_reuses_matched_entity_details(tmp_path):
     assert cached == saved
     assert cached is not None
     assert cached.details.payload == response
+    assert cached.details.poster_path == "/star-wars.jpg"
     metric = repository.latest_metric("movie", 11)
     assert metric is not None
     assert metric.entity_detail_id == saved.entity_detail_id
@@ -264,6 +267,29 @@ def test_backfills_metrics_from_existing_entity_response(tmp_path):
     assert metric.entity_detail_id == saved.entity_detail_id
     assert metric.popularity == 99.0
     assert metric.observed_at == saved.retrieved_at
+
+
+def test_backfills_poster_path_when_migrating_existing_entity_table(tmp_path):
+    path = tmp_path / "tmdb.duckdb"
+    client = TmdbClient(
+        "token",
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, request=request, json=entity_payload())
+        ),
+    )
+    repository = TmdbEntityRepository(path)
+    repository.save(client.details("movie", 11))
+    with duckdb.connect(str(path)) as connection:
+        connection.execute("drop table tmdb_entity_metric_observations")
+        connection.execute("alter table tmdb_entity_details drop column poster_path")
+
+    repository.initialize()
+
+    with duckdb.connect(str(path), read_only=True) as connection:
+        poster_path = connection.execute("select poster_path from tmdb_entity_details").fetchone()[
+            0
+        ]
+    assert poster_path == "/star-wars.jpg"
 
 
 def test_records_source_evidence_separately_from_reusable_search_cache(tmp_path):

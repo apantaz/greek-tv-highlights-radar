@@ -2,7 +2,7 @@
 
 import json
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -66,9 +66,20 @@ class TmdbEntityRepository:
                     spoken_languages_json json not null,
                     retrieved_at timestamptz not null,
                     response_json json not null,
+                    poster_path varchar,
                     check (media_type in ('movie', 'tv')),
                     check (runtime_minutes is null or runtime_minutes >= 0)
                 )
+                """
+            )
+            connection.execute(
+                "alter table tmdb_entity_details add column if not exists poster_path varchar"
+            )
+            connection.execute(
+                """
+                update tmdb_entity_details
+                set poster_path = nullif(json_extract_string(response_json, '$.poster_path'), '')
+                where poster_path is null
                 """
             )
             connection.execute(
@@ -123,7 +134,7 @@ class TmdbEntityRepository:
                     tagline, runtime_minutes, status, homepage, imdb_id,
                     genres_json, production_countries_json,
                     production_companies_json, spoken_languages_json,
-                    retrieved_at, response_json
+                    retrieved_at, response_json, poster_path
                 from tmdb_entity_details
                 where media_type = ? and tmdb_id = ? and language = ?
                 order by retrieved_at desc, entity_detail_id desc
@@ -147,6 +158,7 @@ class TmdbEntityRepository:
             status=row[11],
             homepage=row[12],
             imdb_id=row[13],
+            poster_path=row[20],
             genres=tuple(json.loads(row[14])),
             production_countries=tuple(json.loads(row[15])),
             production_companies=tuple(json.loads(row[16])),
@@ -175,8 +187,15 @@ class TmdbEntityRepository:
             try:
                 connection.execute(
                     """
-                    insert into tmdb_entity_details values (
-                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    insert into tmdb_entity_details (
+                        entity_detail_id, tmdb_id, media_type, language, title,
+                        original_title, original_language, release_date, overview,
+                        tagline, runtime_minutes, status, homepage, imdb_id,
+                        genres_json, production_countries_json,
+                        production_companies_json, spoken_languages_json,
+                        retrieved_at, response_json, poster_path
+                    ) values (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                     )
                     """,
                     [
@@ -200,6 +219,7 @@ class TmdbEntityRepository:
                         json.dumps(details.spoken_languages, ensure_ascii=False),
                         retrieved_at,
                         json.dumps(details.payload, ensure_ascii=False),
+                        details.poster_path,
                     ],
                 )
                 connection.execute(
@@ -254,20 +274,40 @@ class TmdbEntityRepository:
                 """
             ).fetchall()
 
-    def matched_identities(self) -> list[tuple[str, int]]:
-        """Return distinct identities accepted by any resolution run."""
+    def matched_identities(self, schedule_date: date | None = None) -> list[tuple[str, int]]:
+        """Return accepted identities, optionally limited by exact broadcast lineage."""
         self.initialize()
-        with duckdb.connect(str(self.path), read_only=True) as connection:
-            rows = connection.execute(
-                """
+        if schedule_date is None:
+            query = """
                 select distinct media_type, tmdb_id
                 from tmdb_resolutions
                 where status = 'matched'
                   and media_type is not null
                   and tmdb_id is not null
                 order by media_type, tmdb_id
-                """
-            ).fetchall()
+            """
+            parameters = []
+        else:
+            query = """
+                select distinct
+                    resolutions.media_type,
+                    resolutions.tmdb_id
+                from tmdb_resolutions as resolutions
+                inner join broadcast_enrichment_lookups as lineage
+                    on resolutions.lookup_id = lineage.lookup_id
+                inner join broadcast_observations as observations
+                    on lineage.observation_id = observations.observation_id
+                inner join ingestion_runs as runs
+                    on observations.run_id = runs.run_id
+                where resolutions.status = 'matched'
+                  and resolutions.media_type is not null
+                  and resolutions.tmdb_id is not null
+                  and runs.schedule_date = ?
+                order by resolutions.media_type, resolutions.tmdb_id
+            """
+            parameters = [schedule_date]
+        with duckdb.connect(str(self.path), read_only=True) as connection:
+            rows = connection.execute(query, parameters).fetchall()
         return rows
 
 

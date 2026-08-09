@@ -1,6 +1,9 @@
 {% docs mart_daily_highlights_observation_id %}Exact current broadcast observation ranked by the mart.{% enddocs %}
 {% docs mart_daily_highlights_channel_key %}Foreign key to the channel dimension.{% enddocs %}
 {% docs mart_daily_highlights_programme_key %}Foreign key to the canonical programme dimension.{% enddocs %}
+{% docs mart_daily_highlights_tmdb_id %}TMDB entity identifier behind the ranked programme.{% enddocs %}
+{% docs mart_daily_highlights_media_type %}TMDB entity type: movie or television.{% enddocs %}
+{% docs mart_daily_highlights_match_confidence %}Resolver confidence, from zero to 100, that the schedule title maps to the selected TMDB entity.{% enddocs %}
 {% docs mart_daily_highlights_source %}Upstream schedule source containing the broadcast.{% enddocs %}
 {% docs mart_daily_highlights_channel %}Channel whose daily highlights include the broadcast.{% enddocs %}
 {% docs mart_daily_highlights_schedule_date %}Requested schedule date within which the broadcast is ranked.{% enddocs %}
@@ -10,7 +13,10 @@
 {% docs mart_daily_highlights_programme_title %}Preferred localized canonical programme title.{% enddocs %}
 {% docs mart_daily_highlights_original_title %}Canonical programme title in its original language.{% enddocs %}
 {% docs mart_daily_highlights_release_year %}Release or first-air year when supplied by TMDB.{% enddocs %}
+{% docs mart_daily_highlights_runtime_minutes %}Movie runtime or first stated episode runtime supplied by TMDB.{% enddocs %}
+{% docs mart_daily_highlights_metadata_retrieved_at %}Timestamp when the canonical TMDB metadata was retrieved.{% enddocs %}
 {% docs mart_daily_highlights_imdb_id %}IMDb identifier supplied by TMDB when available.{% enddocs %}
+{% docs mart_daily_highlights_poster_path %}Relative TMDB poster path used by presentation clients.{% enddocs %}
 {% docs mart_daily_highlights_genres_json %}Complete canonical genre collection retained as JSON.{% enddocs %}
 {% docs mart_daily_highlights_metric_observation_id %}Latest TMDB metric observation used by ranking version `v1`.{% enddocs %}
 {% docs mart_daily_highlights_popularity %}Raw TMDB popularity value used by the popularity component.{% enddocs %}
@@ -22,6 +28,7 @@
 {% docs mart_daily_highlights_popularity_score %}Non-negative popularity normalized from zero to 100 on a base-10 logarithmic scale and capped at 100.{% enddocs %}
 {% docs mart_daily_highlights_highlight_score %}Weighted score: 70% quality, 20% confidence, and 10% popularity.{% enddocs %}
 {% docs mart_daily_highlights_highlight_rank %}Deterministic score order within source, channel, and requested schedule date.{% enddocs %}
+{% docs mart_daily_highlights_overall_highlight_rank %}Deterministic score order across every channel within a source and requested schedule date.{% enddocs %}
 {% docs mart_daily_highlights_ranking_version %}Version of the eligibility and scoring policy, currently `v1`.{% enddocs %}
 {% docs mart_daily_highlights_ranking_explanation %}Human-readable summary of the scoring weights.{% enddocs %}
 
@@ -147,6 +154,10 @@ Official homepage URL reported by TMDB, when available.
 IMDb identifier reported by TMDB, when available.
 {% enddocs %}
 
+{% docs dim_programmes_poster_path %}
+Relative TMDB poster asset path, when available.
+{% enddocs %}
+
 {% docs dim_programmes_genres_json %}
 Complete normalized genre collection retained as JSON.
 {% enddocs %}
@@ -225,6 +236,13 @@ Nullable latest resolution associated with the broadcast's enrichment lookup.
 
 {% docs fct_current_broadcasts_resolution_status %}
 Matched or unresolved outcome; null when the broadcast has not been enriched.
+{% enddocs %}
+
+{% docs fct_current_broadcasts_match_confidence %}
+Confidence score, from zero to 100, of the selected schedule-to-TMDB identity match.
+Policy `v1` requires at least 85 and a winner margin of at least 10 when another
+candidate exists. This score documents resolution and does not guarantee that full
+entity metadata has already been retrieved.
 {% enddocs %}
 
 {% docs fct_current_broadcasts_tmdb_id %}

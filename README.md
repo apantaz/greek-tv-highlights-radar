@@ -16,15 +16,15 @@ latest successful schedules into documented business-facing tables.
 
 The warehouse includes tested ingestion and enrichment raw views, schedule
 intermediate views, a channel dimension, a current-broadcast fact, and a daily
-schedule mart. The complete dbt graph contains 24 models protected by 375 data tests.
+schedule mart. The complete dbt graph contains 24 models protected by 383 data tests.
 
 Direct observation lineage connects the current-broadcast fact to a canonical
 programme dimension while retaining unresolved broadcasts. Historical TMDB
 popularity and voting observations are published as an analytical fact, and daily
 enrichment coverage makes pipeline completeness measurable by channel and schedule
 date. Current development ranks eligible daily broadcasts with a versioned,
-component-level score that remains fully explainable. Streamlit delivery is next. The
-Python suite contains 100 tests.
+component-level score that remains fully explainable and presents the results through
+a read-only Streamlit screen. The Python suite contains 120 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -37,6 +37,8 @@ ProgrammaTileorasis.gr
   → tested raw dbt views
   → latest successful runs and current broadcasts
   → channel dimension, broadcast fact, and daily schedule mart
+  → transparent daily-highlight ranking
+  → Streamlit analytics screen
 
 Current programme evidence
   → deterministic title and production-year extraction
@@ -50,8 +52,8 @@ The source adapter discovers the free channels advertised by the upstream source
 runtime and can ingest the complete catalog with isolated per-channel failures. TMDB
 enrichment preserves each source title, caches typed TMDB movie and TV candidates
 with their raw API evidence, and scores them through a conservative, explainable
-policy. Uncertain results remain unresolved. Recommendations and Streamlit follow now
-that the ingestion, analytics, and external-metadata boundaries are reliable.
+policy. Uncertain results remain unresolved. The first Streamlit view exposes ranked
+daily highlights without crossing the transformation or external-metadata boundaries.
 
 ### TMDB candidate cache
 
@@ -139,7 +141,9 @@ valid data outcomes. Channel matching is case-insensitive, and the date refers t
 requested ingestion schedule date rather than timestamps after midnight rollover.
 Both newly processed and previously cached evidence are linked idempotently to every
 exact broadcast observation represented by the evidence group; title text is never
-used later to infer analytical lineage.
+used later to infer analytical lineage. Every completed programme is printed
+immediately with its position, total, completion percentage, outcome, and cache
+source, making long-running batches observable.
 
 Retrieve complete metadata for every confidently matched identity:
 
@@ -147,12 +151,27 @@ Retrieve complete metadata for every confidently matched identity:
 greek-tv enrich-entities
 ```
 
+Restrict metadata retrieval to identities linked to one requested schedule date:
+
+```bash
+greek-tv enrich-entities --date 2026-08-08
+```
+
 The command processes distinct accepted `(media_type, tmdb_id)` pairs and caches
 results by identity and response language. It never retrieves details for unresolved
-programmes. Repeated runs reuse the local cache without creating API requests; use
-`--limit 10` for a controlled run, `--language en-US` for another response language,
-or `--refresh` to append fresh source evidence. One failed identity does not stop the
-remaining batch, and any operational failure produces exit status `1`.
+programmes. Date filtering follows persisted observation-to-lookup lineage and the
+ingestion run's requested schedule date; it never infers identity from title text.
+Repeated runs reuse the local cache without creating API requests; use `--limit 10`
+for a controlled run, `--language en-US` for another response language, or `--refresh`
+to append fresh source evidence. Progress is printed immediately for each distinct
+identity. One failed identity does not stop the remaining batch, and any operational
+failure produces exit status `1`.
+
+Every CLI command includes a runnable example in its command-specific help:
+
+```bash
+greek-tv enrich-entities --help
+```
 
 Stable normalized columns include titles, overview, dates, runtime, genres,
 production countries and companies, spoken languages, homepage, status, and the
@@ -221,6 +240,36 @@ intermediate views. The canonical programme dimension, programme-aware broadcast
 fact, historical TMDB metrics fact, and daily enrichment-coverage mart are available.
 The daily-highlights mart ranks canonical broadcasts using visible quality,
 vote-confidence, and popularity components.
+
+## Streamlit analytics app
+
+The first read-only application screen turns the daily-highlights mart into an
+interactive archive. Its default view ranks programmes across every available channel,
+while the channel filter can narrow the same date to STAR or another channel. Ranking
+scores, normalized components, match confidence, and policy versions remain visible;
+raw identifiers and timestamps are available through a technical-details toggle.
+Fixed-size poster cards use paths already retained in TMDB
+detail responses, do not open an enlarged viewer, and fall back to a repository-local
+placeholder. A branded editorial interface, compact discovery controls, ranking
+badges, and visual evidence bars make the experience read as a viewing product rather
+than a generic data dashboard. Athens-aware Tonight, Tomorrow, Next 3 days, and
+historical calendar views organize picks into daily collections. The calendar is bounded
+from the earliest archived date through yesterday, excluding unstable current and future
+schedules. Complete cards link to validated
+IMDb title pages, and a fixed picks-per-day menu keeps the layout intentional.
+
+Build the required mart and launch the application from the repository root:
+
+```bash
+cd dbt
+dbt build --select +mart_daily_highlights
+cd ..
+streamlit run streamlit/app.py
+```
+
+The app reads `data/greek_tv.duckdb` by default. A different database can be selected
+from its sidebar. See the [Streamlit app guide](streamlit/README.md) for its data
+boundary and troubleshooting notes.
 
 Run dbt directly from its project directory:
 

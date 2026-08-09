@@ -95,12 +95,45 @@ def test_enrich_parser_exposes_language_and_incremental_limit():
 
 def test_enrich_entities_parser_exposes_cache_controls():
     args = cli.build_parser().parse_args(
-        ["enrich-entities", "--language", "en-US", "--limit", "5", "--refresh"]
+        [
+            "enrich-entities",
+            "--language",
+            "en-US",
+            "--limit",
+            "5",
+            "--refresh",
+            "--date",
+            "2026-08-08",
+        ]
     )
 
     assert args.language == "en-US"
     assert args.limit == 5
     assert args.refresh is True
+    assert args.date == date(2026, 8, 8)
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "ingest",
+        "ingest-all",
+        "channels",
+        "tmdb-check",
+        "tmdb-search",
+        "enrich",
+        "enrich-entities",
+        "snapshot-metrics",
+    ],
+)
+def test_every_command_help_includes_an_example(command, capsys):
+    parser = cli.build_parser()
+
+    with pytest.raises(SystemExit) as captured:
+        parser.parse_args([command, "--help"])
+
+    assert captured.value.code == 0
+    assert "example:" in capsys.readouterr().out
 
 
 def test_snapshot_metrics_parser_exposes_refresh_interval():

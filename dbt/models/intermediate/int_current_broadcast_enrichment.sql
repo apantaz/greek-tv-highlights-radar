@@ -34,6 +34,7 @@ select
     programmes.resolution_id,
     programmes.resolution_status,
     programmes.resolution_reason,
+    programmes.winning_score as match_confidence,
     programmes.tmdb_id,
     programmes.media_type,
     programmes.entity_detail_id,

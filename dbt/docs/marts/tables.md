@@ -2,9 +2,10 @@
 
 # Daily highlights mart
 
-One row per eligible current broadcast, ranked within source, channel, and requested
-schedule date. Eligibility requires canonical programme identity and a latest TMDB
-metric observation. Version `v1` weights normalized vote average at 70%, log-scaled
+One row per eligible current broadcast with both a channel-specific rank and an
+overall rank across every channel for the source and requested schedule date.
+Eligibility requires canonical programme identity and a latest TMDB metric
+observation. Version `v1` weights normalized vote average at 70%, log-scaled
 vote-count confidence at 20%, and log-scaled popularity at 10%. Every component,
 source metric, ranking version, and deterministic tie-break attribute remains visible.
 
@@ -60,6 +61,8 @@ One row per programme observation in the latest successful schedule for a source
 channel, and requested date. The fact adds Athens-local timestamps, duration,
 midnight-crossing behavior, deterministic schedule position, and nullable canonical
 programme identity. Unresolved and unenriched broadcasts remain in the fact.
+A match confidence can exist before canonical metadata because resolution and
+entity-detail retrieval are intentionally separate, idempotent pipeline stages.
 
 {% enddocs %}
 

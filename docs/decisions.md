@@ -51,6 +51,10 @@ through their numeric identifier and a `channel-<id>` fallback; removed channels
 resolving. This avoids silently freezing a changing upstream catalog in application
 code.
 
+The parser also resolves each source-owned channel-logo path to an absolute URL. The
+presentation layer refreshes that catalog through an hourly cache and renders logos in
+a uniform contain-fit frame. Logo failure never removes or disables a channel filter.
+
 ## ADR-008
 Batch ingestion isolates channels without introducing a persisted batch entity.
 
@@ -210,4 +214,21 @@ contributes 20% after base-10 logarithmic normalization, and popularity contribu
 zero. Schedule time is not treated as quality, and no manual editorial override
 exists. Deterministic tie-breaking uses component scores, schedule time, and
 observation ID. Rankings intentionally reflect the latest available mutable metrics;
-the metric timestamp and policy version make changes across rebuilds explicit.
+the metric timestamp and policy version make changes across rebuilds explicit. The
+same score produces a channel-specific order and a source-wide daily order across all
+available channels; both ranks are materialized and tested in dbt so presentation
+clients do not redefine the business rule.
+
+## ADR-024
+Poster presentation uses retained TMDB paths and remote TMDB assets.
+
+The complete entity response already contains the selected localized `poster_path`,
+so dbt projects it without issuing a separate image API request. Python persists the
+typed path for future retrievals and non-destructively backfills initialized legacy
+tables from immutable response JSON. Presentation constructs the documented `w500`
+TMDB asset URL while retaining a local placeholder for missing posters. Image binaries
+are not duplicated in DuckDB or Git. The UI labels voting metrics as TMDB ratings and
+includes an approved TMDB logo and required attribution notice; an IMDb identifier is
+not misrepresented as an IMDb rating. Valid TMDB-supplied IMDb title identifiers may
+act as outbound programme-detail links, but malformed or missing identifiers never
+produce navigation.

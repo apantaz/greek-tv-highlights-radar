@@ -61,6 +61,7 @@ select
     enrichment.lookup_id,
     enrichment.resolution_id,
     enrichment.resolution_status,
+    enrichment.match_confidence,
     enrichment.tmdb_id,
     enrichment.media_type,
     enriched.source,

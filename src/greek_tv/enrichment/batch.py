@@ -68,8 +68,9 @@ def enrich_current_programmes(
     limit: int | None = None,
     channel: str | None = None,
     schedule_date: date | None = None,
+    on_programme: Callable[[ProgrammeEnrichmentResult, int, int], None] | None = None,
 ) -> BatchEnrichmentResult:
-    """Enrich distinct current programme evidence with isolated per-title failures."""
+    """Enrich distinct current programmes and optionally report each completed result."""
     if limit is not None and limit < 1:
         raise ValueError("batch enrichment limit must be at least 1")
     IngestionRepository(database_path).initialize()
@@ -79,6 +80,7 @@ def enrich_current_programmes(
     groups = _evidence_groups(rows, language)
     if limit is not None:
         groups = groups[:limit]
+    total_programmes = len(groups)
     results = []
     lineage = BroadcastEnrichmentLineageRepository(database_path)
     for evidence, description, observation_ids in groups:
@@ -87,9 +89,10 @@ def enrich_current_programmes(
             lookup_id = repository.resolved_lookup_id(evidence, language)
             if lookup_id is not None:
                 lineage.link(observation_ids, lookup_id, language)
-                results.append(
-                    ProgrammeEnrichmentResult(source_title, BatchEnrichmentStatus.SKIPPED)
-                )
+                result = ProgrammeEnrichmentResult(source_title, BatchEnrichmentStatus.SKIPPED)
+                results.append(result)
+                if on_programme is not None:
+                    on_programme(result, len(results), total_programmes)
                 continue
             outcome = enrich_title(
                 repository,
@@ -104,15 +107,16 @@ def enrich_current_programmes(
                 if outcome.resolution.resolution.status is ResolutionStatus.MATCHED
                 else BatchEnrichmentStatus.UNRESOLVED
             )
-            results.append(ProgrammeEnrichmentResult(source_title, status, outcome.search_source))
+            result = ProgrammeEnrichmentResult(source_title, status, outcome.search_source)
         except Exception as error:
-            results.append(
-                ProgrammeEnrichmentResult(
-                    source_title,
-                    BatchEnrichmentStatus.FAILED,
-                    error_message=f"{type(error).__name__}: {error}"[:2000],
-                )
+            result = ProgrammeEnrichmentResult(
+                source_title,
+                BatchEnrichmentStatus.FAILED,
+                error_message=f"{type(error).__name__}: {error}"[:2000],
             )
+        results.append(result)
+        if on_programme is not None:
+            on_programme(result, len(results), total_programmes)
     return BatchEnrichmentResult(tuple(results))
 
 

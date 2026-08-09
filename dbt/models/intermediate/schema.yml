@@ -224,6 +224,8 @@ models:
         description: "{{ doc('int_tmdb_homepage') }}"
       - name: imdb_id
         description: "{{ doc('int_tmdb_imdb_id') }}"
+      - name: poster_path
+        description: "{{ doc('int_tmdb_poster_path') }}"
       - name: genres_json
         description: "{{ doc('int_tmdb_genres_json') }}"
         data_tests: [not_null]
@@ -420,6 +422,8 @@ models:
               arguments: {values: [matched, unresolved]}
       - name: resolution_reason
         description: "{{ doc('int_tmdb_resolution_reason') }}"
+      - name: match_confidence
+        description: "{{ doc('int_tmdb_winning_score') }}"
       - name: tmdb_id
         description: "{{ doc('int_tmdb_id') }}"
       - name: media_type

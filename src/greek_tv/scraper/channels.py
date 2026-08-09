@@ -2,11 +2,12 @@
 
 import re
 from dataclasses import dataclass
-from urllib.parse import unquote
+from urllib.parse import unquote, urljoin
 
 from bs4 import BeautifulSoup
 
 CHANNEL_PATH = re.compile(r"^/free/(?P<source_id>\d+)/(?P<name>[^/?#]+)")
+SOURCE_BASE_URL = "https://programmatileorasis.gr"
 
 # Aliases are interface conveniences, not a source-of-truth catalog. Newly discovered
 # source identifiers remain usable through their numeric ID or a channel-<id> slug.
@@ -43,6 +44,7 @@ class Channel:
     slug: str
     source_id: int
     display_name: str
+    logo_url: str | None = None
 
 
 def parse_channel_catalog(html: str) -> tuple[Channel, ...]:
@@ -73,7 +75,9 @@ def parse_channel_catalog(html: str) -> tuple[Channel, ...]:
             raise ChannelCatalogError(f"duplicate channel entry for {slug!r}")
         source_ids.add(source_id)
         slugs.add(slug)
-        channels.append(Channel(slug, source_id, display_name))
+        logo_path = image.get("src", "").strip() if image else ""
+        logo_url = urljoin(SOURCE_BASE_URL, logo_path) if logo_path else None
+        channels.append(Channel(slug, source_id, display_name, logo_url))
 
     if not channels:
         raise ChannelCatalogError("channel catalog contains no free channels")
