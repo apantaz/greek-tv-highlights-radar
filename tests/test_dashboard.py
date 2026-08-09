@@ -12,6 +12,7 @@ from greek_tv.dashboard import (
     dates_in_horizon,
     imdb_url,
     poster_url,
+    tmdb_url,
 )
 
 
@@ -242,6 +243,14 @@ def test_imdb_url_accepts_only_title_identifiers() -> None:
     assert imdb_url(None) is None
     assert imdb_url("nm1234567") is None
     assert imdb_url('tt123" onclick="alert(1)') is None
+
+
+def test_tmdb_url_accepts_only_supported_positive_identities() -> None:
+    assert tmdb_url("movie", 49026) == ("https://www.themoviedb.org/movie/49026?language=el-GR")
+    assert tmdb_url("tv", 1396) == "https://www.themoviedb.org/tv/1396?language=el-GR"
+    assert tmdb_url("person", 49026) is None
+    assert tmdb_url("movie", 0) is None
+    assert tmdb_url(None, None) is None
 
 
 def test_dates_in_horizon_includes_today_and_requested_number_of_days() -> None:

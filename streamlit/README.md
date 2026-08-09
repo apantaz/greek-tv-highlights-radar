@@ -26,7 +26,8 @@ frames. Poster images are
 non-interactive and cannot expand into a full-screen viewer. Missing posters use a
 local placeholder; available posters are loaded from TMDB's documented `w500` image
 service without making another API request. TMDB ratings use a gold star and remain
-visually distinct from the project's highlight score.
+visually distinct from the project's highlight score. The lower-left sidebar credits
+and links to ProgrammaTileorasis.gr as the broadcast-schedule source.
 
 The presentation uses a deliberate product interface rather than Streamlit's default
 dashboard components: a branded discovery header, compact sidebar navigation,
@@ -39,15 +40,15 @@ Viewing horizons are evaluated using `Europe/Athens`: **Tonight**, **Tomorrow**,
 from the beginning of the available archive through yesterday. Today and future dates
 are intentionally excluded from archive selection because schedules may still change.
 Multi-day results remain grouped and independently ranked per day.
-Each date presents four deliberately compact top picks. A card with a valid
-TMDB-supplied `tt...` identifier is fully clickable and
-opens the corresponding IMDb title page in a new tab; missing or malformed identifiers
-produce a visibly unavailable, non-clickable card.
+Each date presents four deliberately compact top picks. A card with a supported TMDB
+media type and positive TMDB ID is fully clickable and opens the corresponding TMDB
+movie or television page in a new tab with the `el-GR` display language requested.
+Missing or malformed identities produce a visibly unavailable, non-clickable card.
 
 The **About & credits** section contains the approved TMDB logo and required notice:
 "This product uses the TMDB API but is not endorsed or certified by TMDB." Ratings in
-the cards are explicitly labeled as TMDB ratings; the available IMDb identifier is an
-identity link and must not be presented as an IMDb rating.
+the cards are explicitly labeled as TMDB ratings, and card navigation uses the same
+TMDB identity that supplied the metadata.
 
 Streamlit caches read results for at most 60 seconds and also invalidates them when
 the database file changes.

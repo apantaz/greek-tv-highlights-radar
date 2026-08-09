@@ -12,6 +12,8 @@ import duckdb
 HIGHLIGHTS_RELATION = "greek_tv_marts.mart_daily_highlights"
 CHANNELS_RELATION = "greek_tv_marts.dim_channels"
 TMDB_POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"
+TMDB_TITLE_URL = "https://www.themoviedb.org"
+TMDB_DISPLAY_LANGUAGE = "el-GR"
 IMDB_TITLE_URL = "https://www.imdb.com/title"
 IMDB_ID_PATTERN = re.compile(r"^tt\d+$")
 
@@ -158,6 +160,15 @@ def poster_url(poster_path: str | None) -> str | None:
     if not poster_path:
         return None
     return f"{TMDB_POSTER_BASE_URL}/{poster_path.lstrip('/')}"
+
+
+def tmdb_url(media_type: str | None, tmdb_id: int | None) -> str | None:
+    """Return a safe TMDB title URL for a supported positive identity."""
+    if media_type not in {"movie", "tv"}:
+        return None
+    if not isinstance(tmdb_id, int) or isinstance(tmdb_id, bool) or tmdb_id < 1:
+        return None
+    return f"{TMDB_TITLE_URL}/{media_type}/{tmdb_id}?language={TMDB_DISPLAY_LANGUAGE}"
 
 
 def imdb_url(imdb_id: str | None) -> str | None:

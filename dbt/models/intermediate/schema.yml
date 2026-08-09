@@ -336,8 +336,6 @@ models:
               arguments: {values: [matched, unresolved]}
       - name: resolution_reason
         description: "{{ doc('int_tmdb_resolution_reason') }}"
-      - name: match_confidence
-        description: "{{ doc('int_tmdb_winning_score') }}"
       - name: winning_candidate_rank
         description: "{{ doc('int_tmdb_winning_candidate_rank') }}"
       - name: tmdb_id
@@ -424,6 +422,8 @@ models:
               arguments: {values: [matched, unresolved]}
       - name: resolution_reason
         description: "{{ doc('int_tmdb_resolution_reason') }}"
+      - name: match_confidence
+        description: "{{ doc('int_tmdb_winning_score') }}"
       - name: tmdb_id
         description: "{{ doc('int_tmdb_id') }}"
       - name: media_type

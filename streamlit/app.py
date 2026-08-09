@@ -18,8 +18,8 @@ from greek_tv.dashboard import (
     available_sources,
     daily_highlights,
     dates_in_horizon,
-    imdb_url,
     poster_url,
+    tmdb_url,
 )
 from greek_tv.scraper.channels import ChannelCatalogError
 from greek_tv.scraper.client import ScheduleClient
@@ -364,7 +364,21 @@ st.html(
     .kpi-value { color: var(--text); font-size: 1.45rem; font-weight: 800; line-height: 1; }
     .kpi-label { color: var(--muted); font-size: .77rem; margin-top: .35rem; }
     .programme-meta {
-        color: var(--muted); font-size: .74rem; margin-top: .45rem; min-height: 2.15rem;
+        align-items: center; color: var(--muted); display: flex; font-size: .74rem;
+        gap: .55rem; justify-content: space-between; margin-top: .45rem; min-height: 2.15rem;
+    }
+    .programme-attributes {
+        min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .tmdb-rating {
+        align-items: baseline; display: inline-flex; flex: 0 0 auto; gap: .12rem;
+        white-space: nowrap;
+    }
+    .tmdb-rating .rating-star { color: var(--gold); }
+    .tmdb-rating .rating-value { color: var(--text); font-size: .9rem; }
+    .tmdb-rating .rating-scale { color: var(--muted); font-size: .7rem; }
+    .tmdb-rating .rating-source {
+        color: var(--muted); font-size: .62rem; margin-left: .16rem; text-transform: uppercase;
     }
     .dual-metric { border-top: 1px solid var(--card-border); display: grid; gap: .5rem;
         grid-template-columns: 1fr 1fr; margin-top: .75rem; padding-top: .75rem; }
@@ -373,13 +387,6 @@ st.html(
     .why-title { background: rgba(148,163,184,.07); border: 1px solid var(--card-border);
         border-radius: .45rem; color: var(--text); font-size: .75rem; font-weight: 700;
         margin: .75rem 0; padding: .55rem .65rem; }
-    .continuation {
-        align-items: center; background: rgba(16,29,46,.72);
-        border: 1px solid var(--card-border); border-radius: .85rem;
-        display: flex; justify-content: space-between; margin-top: .5rem; padding: 1rem 1.2rem;
-    }
-    .continuation strong { color: var(--text); }
-    .continuation span { color: var(--muted); font-size: .8rem; }
     @media (max-width: 1100px) {
         .card-grid, .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
@@ -446,6 +453,8 @@ st.html(
         border-top: 1px solid #17283b; color: #9eabba; font-size: .72rem;
         margin-top: 5rem; padding-top: 1rem;
     }
+    .sidebar-footer a { color: #20e0cf; text-decoration: none; }
+    .sidebar-footer a:hover { text-decoration: underline; }
     [data-testid="stButtonGroup"] { display: flex; justify-content: flex-end; }
     [data-testid="stButtonGroup"] button {
         background: rgba(7,18,32,.88); border-color: #26364a; color: #edf4fb;
@@ -495,7 +504,6 @@ st.html(
     .card-grid .programme-card .evidence-fill { background: var(--rank-accent); }
     .programme-heading { font-size: .98rem; margin-top: .65rem; }
     .programme-details, .programme-meta { color: #b1bdcc; }
-    .programme-meta .rating-star { display: none; }
     .programme-meta { min-height: 1.4rem; }
     .dual-metric { border-color: #1a2b3e; }
     .metric-number small { color: #aab6c5; font-size: .72rem; font-weight: 400; }
@@ -504,12 +512,6 @@ st.html(
     .card-cta {
         border: 1px solid #203147; border-radius: .4rem; color: #c2cddb;
         margin-top: .75rem; padding: .55rem .7rem;
-    }
-    .continuation { background: #091625; border-color: #1a2b3e; }
-    .continuation .cta-button {
-        border: 1px solid #00bcae; border-radius: .45rem; color: #20e0cf;
-        font-size: .82rem; font-weight: 700; min-width: 14rem; padding: .72rem 1rem;
-        text-align: center;
     }
     </style>
     """
@@ -670,20 +672,22 @@ def card_markup(highlight: dict[str, object], show_technical_details: bool) -> s
     channel = str(highlight["channel"])
     start_time = highlight["starts_at_local"].strftime("%H:%M")
     image = poster_url(highlight["poster_path"])
-    destination = imdb_url(highlight["imdb_id"])
+    destination = tmdb_url(highlight["media_type"], highlight["tmdb_id"])
     match_confidence = highlight["match_confidence"]
     match_label = f"{float(match_confidence):.0f}%" if match_confidence is not None else "—"
+    vote_average = highlight["vote_average"]
+    rating_label = f"{float(vote_average):.1f}" if vote_average is not None else "—"
     if destination:
         opening = (
             f'<a class="programme-card" href="{escape(destination, quote=True)}" '
-            f'target="_blank" rel="noopener noreferrer" aria-label="View {escape(title)} on IMDb">'
+            f'target="_blank" rel="noopener noreferrer" aria-label="View {escape(title)} on TMDB">'
         )
         closing = "</a>"
-        call_to_action = '<div class="card-cta"><span>More details</span><span>ⓘ</span></div>'
+        call_to_action = '<div class="card-cta"><span>View on TMDB</span><span>ⓘ</span></div>'
     else:
         opening = '<article class="programme-card unavailable">'
         closing = "</article>"
-        call_to_action = '<div class="card-cta"><span>IMDb page unavailable</span></div>'
+        call_to_action = '<div class="card-cta"><span>TMDB page unavailable</span></div>'
 
     return (
         opening
@@ -699,7 +703,15 @@ def card_markup(highlight: dict[str, object], show_technical_details: bool) -> s
         + '<div class="programme-details">'
         + f"◷ {escape(start_time)} &nbsp;•&nbsp; {escape(channel)}"
         + "</div>"
-        + f'<div class="programme-meta">{escape(programme_metadata(highlight))}</div>'
+        + '<div class="programme-meta">'
+        + f'<span class="programme-attributes">{escape(programme_metadata(highlight))}</span>'
+        + '<span class="tmdb-rating" aria-label="TMDB rating '
+        + escape(rating_label, quote=True)
+        + ' out of 10">'
+        + '<span class="rating-star">★</span>'
+        + f'<span class="rating-value">{escape(rating_label)}</span>'
+        + '<span class="rating-scale">/10</span>'
+        + '<span class="rating-source">TMDB</span></span></div>'
         + '<div class="dual-metric"><div><div class="metric-name">Pick Score</div>'
         + '<div class="metric-number">'
         + f"{highlight['highlight_score']:.1f}<small>/100</small></div></div>"
@@ -878,7 +890,10 @@ top_highlight = highlights[0]
 represented_channels = len({str(highlight["channel"]) for highlight in highlights})
 last_updated = max(highlight["metrics_observed_at"] for highlight in highlights)
 st.sidebar.html(
-    f'<div class="sidebar-footer">Last updated: {last_updated:%d %b %Y, %H:%M} &nbsp; ⟳</div>'
+    '<div class="sidebar-footer">Broadcast schedules: '
+    '<a href="https://programmatileorasis.gr/" target="_blank" '
+    'rel="noopener noreferrer">ProgrammaTileorasis.gr</a><br>'
+    f"Last updated: {last_updated:%d %b %Y, %H:%M} &nbsp; ⟳</div>"
 )
 st.html(
     f'<p style="color:var(--muted)">{len(highlights)} programmes worth watching '
@@ -917,9 +932,3 @@ for schedule_date in selected_dates:
         + "".join(card_markup(highlight, show_technical_details) for highlight in daily_results)
         + "</div>"
     )
-
-st.html(
-    '<section class="continuation"><div><strong>🎬 More upcoming highlights</strong><br>'
-    "<span>See what's worth watching in the next 3 days.</span></div>"
-    '<span class="cta-button">View full schedule &nbsp; ›</span></section>'
-)
