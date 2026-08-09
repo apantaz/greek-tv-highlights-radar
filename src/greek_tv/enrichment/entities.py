@@ -2,7 +2,7 @@
 
 import json
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -274,20 +274,40 @@ class TmdbEntityRepository:
                 """
             ).fetchall()
 
-    def matched_identities(self) -> list[tuple[str, int]]:
-        """Return distinct identities accepted by any resolution run."""
+    def matched_identities(self, schedule_date: date | None = None) -> list[tuple[str, int]]:
+        """Return accepted identities, optionally limited by exact broadcast lineage."""
         self.initialize()
-        with duckdb.connect(str(self.path), read_only=True) as connection:
-            rows = connection.execute(
-                """
+        if schedule_date is None:
+            query = """
                 select distinct media_type, tmdb_id
                 from tmdb_resolutions
                 where status = 'matched'
                   and media_type is not null
                   and tmdb_id is not null
                 order by media_type, tmdb_id
-                """
-            ).fetchall()
+            """
+            parameters = []
+        else:
+            query = """
+                select distinct
+                    resolutions.media_type,
+                    resolutions.tmdb_id
+                from tmdb_resolutions as resolutions
+                inner join broadcast_enrichment_lookups as lineage
+                    on resolutions.lookup_id = lineage.lookup_id
+                inner join broadcast_observations as observations
+                    on lineage.observation_id = observations.observation_id
+                inner join ingestion_runs as runs
+                    on observations.run_id = runs.run_id
+                where resolutions.status = 'matched'
+                  and resolutions.media_type is not null
+                  and resolutions.tmdb_id is not null
+                  and runs.schedule_date = ?
+                order by resolutions.media_type, resolutions.tmdb_id
+            """
+            parameters = [schedule_date]
+        with duckdb.connect(str(self.path), read_only=True) as connection:
+            rows = connection.execute(query, parameters).fetchall()
         return rows
 
 

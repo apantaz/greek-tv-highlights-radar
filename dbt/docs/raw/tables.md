@@ -49,7 +49,10 @@ rank is response metadata and does not represent an accepted identity.
 # Raw TMDB resolutions
 
 Append-only, versioned entity-resolution outcomes. Matched rows carry an accepted
-TMDB identity, while unresolved rows deliberately leave that identity null.
+TMDB identity, while unresolved rows deliberately leave that identity null. Policy
+`v1` accepts a winner only at 85 points or above and, when a runner-up exists,
+requires a margin of at least 10 points. Resolution is distinct from full metadata
+retrieval, so an accepted identity can temporarily have no entity-details row.
 
 {% enddocs %}
 

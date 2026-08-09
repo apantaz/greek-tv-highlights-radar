@@ -96,25 +96,39 @@ identity. `mart_daily_channel_schedule` aggregates broadcast facts to one row pe
 source, channel, and requested date. `mart_daily_enrichment_coverage` uses the same
 grain to expose enrichment, resolution, matching, and canonical-metadata completeness
 without excluding zero-coverage schedules.
-`mart_daily_highlights` filters to canonical broadcasts with metric evidence and ranks
-them within channel and requested date. Ranking version `v1` exposes its raw inputs,
-three normalized components, weighted score, metric timestamp, and deterministic
+`mart_daily_highlights` filters to canonical broadcasts with metric evidence and
+publishes two deterministic orders: one within channel and requested date, and one
+across every channel for the source and requested date. Ranking version `v1` exposes
+its raw inputs, three normalized components, weighted score, metric timestamp, and
 tie-break attributes. Rebuilding after a metric refresh can change ranks explicitly;
 the retained observation ID and ranking version keep each result explainable.
 
 ## Presentation boundary
 
-The Streamlit application queries only the tested `mart_daily_highlights` relation
-through a small read-only Python query boundary. SQL filter values are parameterized,
+The Streamlit application queries the tested `mart_daily_highlights` relation and
+the governed `dim_channels` registry through a small read-only Python query boundary.
+SQL filter values are parameterized,
 connections are short-lived, and cached results are invalidated by a bounded TTL or a
-change to the DuckDB file. The UI never triggers ingestion, transformation, entity
-resolution, or external API requests. Missing databases, missing marts, empty result
+change to the DuckDB file. The UI never triggers ingestion, transformation, or entity
+resolution. It performs one bounded, hourly cached source-catalog request for channel
+logo URLs; failure degrades to a neutral logo placeholder without blocking analytics.
+Missing databases, missing marts, empty result
 sets, and incompatible file locks are presented as actionable states.
 Poster paths are parsed from retained TMDB detail responses and propagated through the
 raw, intermediate, programme-dimension, and daily-highlight models. The application
 constructs documented `w500` CDN URLs at presentation time, uses a local placeholder
 for missing assets, and includes the required TMDB attribution. Image binaries are not
 copied into DuckDB or the repository.
+The interface applies a custom visual system on top of native Streamlit layout and
+interaction primitives. Presentation HTML is generated only from escaped warehouse
+values, while filtering, caching, and read-only access remain in the tested Python
+boundary. This keeps the portfolio experience polished without introducing a separate
+frontend framework or duplicating analytical logic in client-side code.
+Viewing horizons are presentation filters over available daily mart partitions and
+use the explicit `Europe/Athens` calendar boundary. Each date retains its governed dbt
+rank instead of being rescored across a multi-day window. IMDb navigation is derived
+only from identifiers matching the strict `tt` plus digits title pattern, opens in an
+isolated browser tab, and degrades to a non-interactive card when identity is absent.
 
 ## Data grains
 
@@ -222,7 +236,8 @@ Processing remains sequential to keep upstream request behavior predictable. An
 optional limit supports controlled incremental runs. Optional channel and requested
 schedule-date filters join current broadcasts back to their ingestion runs before
 evidence is deduplicated. Unresolved identity is a valid outcome; only operational
-failures make the command exit non-zero.
+failures make the command exit non-zero. Each completed evidence group is emitted as
+live CLI progress with its batch position and completion percentage.
 
 Every evidence group retains its exact observation identifiers. After either reusing
 an existing resolved lookup or creating a new one, the batch idempotently writes
@@ -250,7 +265,10 @@ matched tmdb_resolutions
 
 The batch is sequential and failure-isolated. It creates the API client lazily, so a
 fully cached run does not require a token or network access. Normalized entity columns
-exclude mutable popularity and voting metrics.
+exclude mutable popularity and voting metrics. An optional requested schedule-date
+filter selects identities through the persisted broadcast-enrichment bridge and
+ingestion run, preserving exact lineage and avoiding title-based inference. Each
+completed identity is emitted as live CLI progress.
 
 ## Historical metric boundary
 

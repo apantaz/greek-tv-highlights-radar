@@ -18,10 +18,12 @@ from greek_tv.enrichment import (
 from greek_tv.enrichment.batch import (
     BatchEnrichmentResult,
     BatchEnrichmentStatus,
+    ProgrammeEnrichmentResult,
     enrich_current_programmes,
 )
 from greek_tv.enrichment.entity_batch import (
     BatchEntityEnrichmentResult,
+    EntityEnrichmentResult,
     EntityEnrichmentStatus,
     enrich_matched_entities,
 )
@@ -40,46 +42,117 @@ from greek_tv.scraper.schedule import IngestionError, ingest_schedule
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="greek-tv")
-    commands = parser.add_subparsers(dest="command", required=True)
-    ingest = commands.add_parser("ingest", help="fetch and store one channel schedule")
-    ingest.add_argument("--channel", required=True)
-    ingest.add_argument("--date", type=date.fromisoformat, required=True, metavar="YYYY-MM-DD")
-    ingest_all = commands.add_parser("ingest-all", help="fetch and store every channel schedule")
-    ingest_all.add_argument("--date", type=date.fromisoformat, required=True, metavar="YYYY-MM-DD")
-    commands.add_parser("channels", help="list channels currently advertised by the source")
-    commands.add_parser("tmdb-check", help="validate the configured TMDB read-access token")
-    tmdb_search = commands.add_parser(
-        "tmdb-search", help="retrieve and cache TMDB candidates for one source title"
+    help_format = argparse.RawDescriptionHelpFormatter
+    parser = argparse.ArgumentParser(
+        prog="greek-tv",
+        formatter_class=help_format,
+        epilog="example:\n  greek-tv ingest-all --date 2026-08-08",
     )
-    tmdb_search.add_argument("--title", required=True)
+    commands = parser.add_subparsers(dest="command", required=True)
+    ingest = commands.add_parser(
+        "ingest",
+        help="fetch and store one channel schedule",
+        formatter_class=help_format,
+        epilog="example:\n  greek-tv ingest --channel star --date 2026-08-08",
+    )
+    ingest.add_argument("--channel", required=True, help="channel slug, source ID, or name")
+    ingest.add_argument(
+        "--date",
+        type=date.fromisoformat,
+        required=True,
+        metavar="YYYY-MM-DD",
+        help="requested schedule date",
+    )
+    ingest_all = commands.add_parser(
+        "ingest-all",
+        help="fetch and store every channel schedule",
+        formatter_class=help_format,
+        epilog="example:\n  greek-tv ingest-all --date 2026-08-08",
+    )
+    ingest_all.add_argument(
+        "--date",
+        type=date.fromisoformat,
+        required=True,
+        metavar="YYYY-MM-DD",
+        help="requested schedule date",
+    )
+    commands.add_parser(
+        "channels",
+        help="list channels currently advertised by the source",
+        formatter_class=help_format,
+        epilog="example:\n  greek-tv channels",
+    )
+    commands.add_parser(
+        "tmdb-check",
+        help="validate the configured TMDB read-access token",
+        formatter_class=help_format,
+        epilog="example:\n  greek-tv tmdb-check",
+    )
+    tmdb_search = commands.add_parser(
+        "tmdb-search",
+        help="retrieve and cache TMDB candidates for one source title",
+        formatter_class=help_format,
+        epilog=(
+            "example:\n"
+            "  greek-tv tmdb-search --title 'Ο Χάρι Πότερ (Harry Potter)' "
+            "--description 'Παραγωγής 2001.'"
+        ),
+    )
+    tmdb_search.add_argument("--title", required=True, help="title exactly as observed")
     tmdb_search.add_argument(
         "--query", help="override the TMDB query while retaining the source title"
     )
     tmdb_search.add_argument(
         "--description", help="source description containing additional title evidence"
     )
-    tmdb_search.add_argument("--language", default="el-GR")
-    tmdb_search.add_argument("--refresh", action="store_true")
-    enrich = commands.add_parser("enrich", help="enrich all distinct current programmes")
-    enrich.add_argument("--language", default="el-GR")
-    enrich.add_argument("--limit", type=_positive_int)
-    enrich.add_argument("--channel")
-    enrich.add_argument("--date", type=date.fromisoformat, metavar="YYYY-MM-DD")
+    tmdb_search.add_argument("--language", default="el-GR", help="TMDB response language")
+    tmdb_search.add_argument("--refresh", action="store_true", help="bypass cached search")
+    enrich = commands.add_parser(
+        "enrich",
+        help="resolve distinct current programmes to TMDB identities",
+        formatter_class=help_format,
+        epilog="example:\n  greek-tv enrich --channel star --date 2026-08-08",
+    )
+    enrich.add_argument("--language", default="el-GR", help="TMDB response language")
+    enrich.add_argument("--limit", type=_positive_int, help="maximum evidence groups")
+    enrich.add_argument("--channel", help="limit broadcasts to one channel")
+    enrich.add_argument(
+        "--date",
+        type=date.fromisoformat,
+        metavar="YYYY-MM-DD",
+        help="limit broadcasts to one requested schedule date",
+    )
     enrich_entities = commands.add_parser(
         "enrich-entities",
         help="retrieve full metadata for confidently matched TMDB identities",
+        formatter_class=help_format,
+        epilog="example:\n  greek-tv enrich-entities --date 2026-08-08",
     )
-    enrich_entities.add_argument("--language", default="el-GR")
-    enrich_entities.add_argument("--limit", type=_positive_int)
-    enrich_entities.add_argument("--refresh", action="store_true")
+    enrich_entities.add_argument("--language", default="el-GR", help="TMDB response language")
+    enrich_entities.add_argument("--limit", type=_positive_int, help="maximum identities")
+    enrich_entities.add_argument(
+        "--refresh", action="store_true", help="retrieve even when metadata is cached"
+    )
+    enrich_entities.add_argument(
+        "--date",
+        type=date.fromisoformat,
+        metavar="YYYY-MM-DD",
+        help="limit identities through exact broadcast lineage for this schedule date",
+    )
     snapshot_metrics = commands.add_parser(
         "snapshot-metrics",
         help="snapshot mutable TMDB metrics when cached observations are stale",
+        formatter_class=help_format,
+        epilog="example:\n  greek-tv snapshot-metrics --max-age-hours 24",
     )
-    snapshot_metrics.add_argument("--language", default="el-GR")
-    snapshot_metrics.add_argument("--max-age-hours", type=_non_negative_float, default=24.0)
-    snapshot_metrics.add_argument("--limit", type=_positive_int)
+    snapshot_metrics.add_argument("--language", default="el-GR", help="TMDB response language")
+    snapshot_metrics.add_argument(
+        "--max-age-hours",
+        type=_non_negative_float,
+        default=24.0,
+        help="reuse newer observations (default: 24)",
+    )
+    snapshot_metrics.add_argument("--limit", type=_positive_int, help="maximum identities")
     return parser
 
 
@@ -100,8 +173,9 @@ def main() -> None:
             limit=args.limit,
             channel=args.channel,
             schedule_date=args.date,
+            on_programme=_print_programme_enrichment_result,
         )
-        _print_enrichment_summary(result)
+        _print_enrichment_summary(result, include_programmes=False)
         if result.failed:
             raise SystemExit(1)
         return
@@ -112,8 +186,10 @@ def main() -> None:
             client_factory=_tmdb_client,
             limit=args.limit,
             refresh=args.refresh,
+            schedule_date=args.date,
+            on_entity=_print_entity_enrichment_result,
         )
-        _print_entity_enrichment_summary(result)
+        _print_entity_enrichment_summary(result, include_entities=False)
         if result.failed:
             raise SystemExit(1)
         return
@@ -196,17 +272,32 @@ def _print_batch_summary(result: BatchIngestionResult) -> None:
         print(f"{item.channel.slug:<16} {item.status.value:<9} {detail}")
 
 
-def _print_entity_enrichment_summary(result: BatchEntityEnrichmentResult) -> None:
+def _print_entity_enrichment_result(
+    result: EntityEnrichmentResult, completed: int, total: int
+) -> None:
+    """Print one completed identity immediately during metadata enrichment."""
+    percentage = (completed / total * 100) if total else 100.0
+    detail = result.error_message or ""
+    print(
+        f"{completed} of {total} ({percentage:.1f}%) "
+        f"{result.media_type:<5} {result.tmdb_id:<8} {result.status.value:<9} {detail}".rstrip(),
+        flush=True,
+    )
+
+
+def _print_entity_enrichment_summary(
+    result: BatchEntityEnrichmentResult, *, include_entities: bool = True
+) -> None:
     print(
         f"total={result.total} "
         f"retrieved={result.count(EntityEnrichmentStatus.RETRIEVED)} "
         f"cached={result.count(EntityEnrichmentStatus.CACHED)} "
         f"failed={result.failed}"
     )
-    print()
-    for item in result.entities:
-        detail = item.error_message or ""
-        print(f"{item.media_type:<5} {item.tmdb_id:<8} {item.status.value:<9} {detail}")
+    if include_entities:
+        print()
+        for completed, item in enumerate(result.entities, start=1):
+            _print_entity_enrichment_result(item, completed, result.total)
 
 
 def _print_metric_snapshot_summary(result: BatchMetricSnapshotResult) -> None:
@@ -281,7 +372,22 @@ def _tmdb_client() -> TmdbClient:
     )
 
 
-def _print_enrichment_summary(result: BatchEnrichmentResult) -> None:
+def _print_programme_enrichment_result(
+    result: ProgrammeEnrichmentResult, completed: int, total: int
+) -> None:
+    """Print one completed programme immediately during a long enrichment batch."""
+    detail = result.error_message or (result.search_source.value if result.search_source else "")
+    percentage = (completed / total * 100) if total else 100.0
+    print(
+        f"{completed} of {total} ({percentage:.1f}%) "
+        f"{result.status.value:<10} {result.source_title} {detail}".rstrip(),
+        flush=True,
+    )
+
+
+def _print_enrichment_summary(
+    result: BatchEnrichmentResult, *, include_programmes: bool = True
+) -> None:
     print(
         f"total={result.total} "
         f"matched={result.count(BatchEnrichmentStatus.MATCHED)} "
@@ -289,10 +395,10 @@ def _print_enrichment_summary(result: BatchEnrichmentResult) -> None:
         f"skipped={result.count(BatchEnrichmentStatus.SKIPPED)} "
         f"failed={result.failed} cached={result.cached} retrieved={result.retrieved}"
     )
-    print()
-    for item in result.programmes:
-        detail = item.error_message or (item.search_source.value if item.search_source else "")
-        print(f"{item.status.value:<10} {item.source_title} {detail}".rstrip())
+    if include_programmes:
+        print()
+        for completed, item in enumerate(result.programmes, start=1):
+            _print_programme_enrichment_result(item, completed, result.total)
 
 
 def _positive_int(value: str) -> int:

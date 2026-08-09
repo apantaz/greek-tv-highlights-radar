@@ -16,7 +16,7 @@ latest successful schedules into documented business-facing tables.
 
 The warehouse includes tested ingestion and enrichment raw views, schedule
 intermediate views, a channel dimension, a current-broadcast fact, and a daily
-schedule mart. The complete dbt graph contains 24 models protected by 375 data tests.
+schedule mart. The complete dbt graph contains 24 models protected by 383 data tests.
 
 Direct observation lineage connects the current-broadcast fact to a canonical
 programme dimension while retaining unresolved broadcasts. Historical TMDB
@@ -24,7 +24,7 @@ popularity and voting observations are published as an analytical fact, and dail
 enrichment coverage makes pipeline completeness measurable by channel and schedule
 date. Current development ranks eligible daily broadcasts with a versioned,
 component-level score that remains fully explainable and presents the results through
-a read-only Streamlit screen. The Python suite contains 106 tests.
+a read-only Streamlit screen. The Python suite contains 120 tests.
 
 ```text
 ProgrammaTileorasis.gr
@@ -141,7 +141,9 @@ valid data outcomes. Channel matching is case-insensitive, and the date refers t
 requested ingestion schedule date rather than timestamps after midnight rollover.
 Both newly processed and previously cached evidence are linked idempotently to every
 exact broadcast observation represented by the evidence group; title text is never
-used later to infer analytical lineage.
+used later to infer analytical lineage. Every completed programme is printed
+immediately with its position, total, completion percentage, outcome, and cache
+source, making long-running batches observable.
 
 Retrieve complete metadata for every confidently matched identity:
 
@@ -149,12 +151,27 @@ Retrieve complete metadata for every confidently matched identity:
 greek-tv enrich-entities
 ```
 
+Restrict metadata retrieval to identities linked to one requested schedule date:
+
+```bash
+greek-tv enrich-entities --date 2026-08-08
+```
+
 The command processes distinct accepted `(media_type, tmdb_id)` pairs and caches
 results by identity and response language. It never retrieves details for unresolved
-programmes. Repeated runs reuse the local cache without creating API requests; use
-`--limit 10` for a controlled run, `--language en-US` for another response language,
-or `--refresh` to append fresh source evidence. One failed identity does not stop the
-remaining batch, and any operational failure produces exit status `1`.
+programmes. Date filtering follows persisted observation-to-lookup lineage and the
+ingestion run's requested schedule date; it never infers identity from title text.
+Repeated runs reuse the local cache without creating API requests; use `--limit 10`
+for a controlled run, `--language en-US` for another response language, or `--refresh`
+to append fresh source evidence. Progress is printed immediately for each distinct
+identity. One failed identity does not stop the remaining batch, and any operational
+failure produces exit status `1`.
+
+Every CLI command includes a runnable example in its command-specific help:
+
+```bash
+greek-tv enrich-entities --help
+```
 
 Stable normalized columns include titles, overview, dates, runtime, genres,
 production countries and companies, spoken languages, homepage, status, and the
@@ -227,10 +244,19 @@ vote-confidence, and popularity components.
 ## Streamlit analytics app
 
 The first read-only application screen turns the daily-highlights mart into an
-interactive archive. It provides source, channel, and date filters while keeping the
-ranking score, normalized components, raw TMDB evidence, metric timestamp, and policy
-version visible. Responsive poster cards use the image paths already retained in TMDB
-detail responses and fall back to a repository-local placeholder.
+interactive archive. Its default view ranks programmes across every available channel,
+while the channel filter can narrow the same date to STAR or another channel. Ranking
+scores, normalized components, match confidence, and policy versions remain visible;
+raw identifiers and timestamps are available through a technical-details toggle.
+Fixed-size poster cards use paths already retained in TMDB
+detail responses, do not open an enlarged viewer, and fall back to a repository-local
+placeholder. A branded editorial interface, compact discovery controls, ranking
+badges, and visual evidence bars make the experience read as a viewing product rather
+than a generic data dashboard. Athens-aware Tonight, Tomorrow, Next 3 days, and
+historical calendar views organize picks into daily collections. The calendar is bounded
+from the earliest archived date through yesterday, excluding unstable current and future
+schedules. Complete cards link to validated
+IMDb title pages, and a fixed picks-per-day menu keeps the layout intentional.
 
 Build the required mart and launch the application from the repository root:
 

@@ -7,6 +7,9 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [source, channel, schedule_date, highlight_rank]
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [source, schedule_date, overall_highlight_rank]
       - dbt_utils.expression_is_true:
           arguments:
             expression: >-
@@ -42,6 +45,21 @@ models:
               arguments:
                 to: ref('dim_programmes')
                 field: programme_key
+      - name: tmdb_id
+        description: "{{ doc('mart_daily_highlights_tmdb_id') }}"
+        data_tests: [not_null]
+      - name: media_type
+        description: "{{ doc('mart_daily_highlights_media_type') }}"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments: {values: [movie, tv]}
+      - name: match_confidence
+        description: "{{ doc('mart_daily_highlights_match_confidence') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 0, max_value: 100}
       - name: source
         description: "{{ doc('mart_daily_highlights_source') }}"
         data_tests: [not_null]
@@ -77,6 +95,10 @@ models:
           - dbt_utils.not_empty_string
       - name: release_year
         description: "{{ doc('mart_daily_highlights_release_year') }}"
+      - name: runtime_minutes
+        description: "{{ doc('mart_daily_highlights_runtime_minutes') }}"
+      - name: metadata_retrieved_at
+        description: "{{ doc('mart_daily_highlights_metadata_retrieved_at') }}"
       - name: imdb_id
         description: "{{ doc('mart_daily_highlights_imdb_id') }}"
       - name: poster_path
@@ -138,6 +160,12 @@ models:
               arguments: {min_value: 0, max_value: 100}
       - name: highlight_rank
         description: "{{ doc('mart_daily_highlights_highlight_rank') }}"
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments: {min_value: 1}
+      - name: overall_highlight_rank
+        description: "{{ doc('mart_daily_highlights_overall_highlight_rank') }}"
         data_tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
@@ -525,6 +553,8 @@ models:
         data_tests:
           - accepted_values:
               arguments: {values: [matched, unresolved]}
+      - name: match_confidence
+        description: "{{ doc('fct_current_broadcasts_match_confidence') }}"
       - name: tmdb_id
         description: "{{ doc('fct_current_broadcasts_tmdb_id') }}"
       - name: media_type

@@ -14,6 +14,7 @@ def test_discovers_current_source_catalog(channel_catalog_html):
     assert channels[0].slug == "ert1"
     assert channels[0].source_id == 18
     assert channels[0].display_name == "ΕΡΤ1"
+    assert channels[0].logo_url == "https://programmatileorasis.gr/images/logo_ert1.jpg"
     assert channels[-1].slug == "ert-news"
 
 

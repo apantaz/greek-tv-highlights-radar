@@ -1,5 +1,6 @@
 """Read-only query boundary for the Streamlit analytics application."""
 
+import re
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -9,7 +10,10 @@ import duckdb
 # Use schema-qualified access so an overridden DuckDB filename does not change the
 # catalog name expected by the application.
 HIGHLIGHTS_RELATION = "greek_tv_marts.mart_daily_highlights"
+CHANNELS_RELATION = "greek_tv_marts.dim_channels"
 TMDB_POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"
+IMDB_TITLE_URL = "https://www.imdb.com/title"
+IMDB_ID_PATTERN = re.compile(r"^tt\d+$")
 
 
 class DashboardDataError(RuntimeError):
@@ -53,12 +57,12 @@ def available_sources(database_path: Path) -> list[str]:
 
 
 def available_channels(database_path: Path, source: str) -> list[str]:
-    """Return channels with eligible highlights for one source."""
+    """Return dynamically discovered channels for one source."""
     rows = _query(
         database_path,
         f"""
         select distinct channel
-        from {HIGHLIGHTS_RELATION}
+        from {CHANNELS_RELATION}
         where source = ?
         order by channel
         """,
@@ -67,17 +71,18 @@ def available_channels(database_path: Path, source: str) -> list[str]:
     return [row["channel"] for row in rows]
 
 
-def available_dates(database_path: Path, source: str, channel: str) -> list[date]:
-    """Return archived dates in reverse chronological order."""
+def available_dates(database_path: Path, source: str, channel: str | None) -> list[date]:
+    """Return archived dates for one channel or all channels."""
     rows = _query(
         database_path,
         f"""
         select distinct schedule_date
         from {HIGHLIGHTS_RELATION}
-        where source = ? and channel = ?
+        where source = ?
+          and (? is null or channel = ?)
         order by schedule_date desc
         """,
-        [source, channel],
+        [source, channel, channel],
     )
     return [row["schedule_date"] for row in rows]
 
@@ -85,24 +90,46 @@ def available_dates(database_path: Path, source: str, channel: str) -> list[date
 def daily_highlights(
     database_path: Path,
     source: str,
-    channel: str,
+    channel: str | list[str] | None,
     schedule_date: date,
     limit: int = 10,
 ) -> list[dict[str, Any]]:
-    """Return the highest-ranked eligible broadcasts for one channel-day."""
+    """Return top broadcasts across all channels or within one channel-day."""
     if limit < 1:
         raise ValueError("limit must be at least 1")
+
+    channels = [channel] if isinstance(channel, str) else channel
+    channel_filter = ""
+    filter_parameters: list[object] = []
+    if channels:
+        placeholders = ", ".join("?" for _ in channels)
+        channel_filter = f"and channel in ({placeholders})"
+        filter_parameters.extend(channels)
+    use_channel_rank = isinstance(channel, str)
 
     return _query(
         database_path,
         f"""
         select
-            highlight_rank,
+            case
+                when not ? then overall_highlight_rank
+                else highlight_rank
+            end as highlight_rank,
+            highlight_rank as channel_highlight_rank,
+            overall_highlight_rank,
+            channel,
+            schedule_date,
             starts_at_local,
             schedule_title,
             programme_title,
             original_title,
             release_year,
+            runtime_minutes,
+            genres_json,
+            media_type,
+            tmdb_id,
+            match_confidence,
+            metadata_retrieved_at,
             imdb_id,
             poster_path,
             vote_average,
@@ -117,12 +144,12 @@ def daily_highlights(
             ranking_explanation
         from {HIGHLIGHTS_RELATION}
         where source = ?
-          and channel = ?
           and schedule_date = ?
+          {channel_filter}
         order by highlight_rank
         limit ?
         """,
-        [source, channel, schedule_date, limit],
+        [use_channel_rank, source, schedule_date, *filter_parameters, limit],
     )
 
 
@@ -131,3 +158,22 @@ def poster_url(poster_path: str | None) -> str | None:
     if not poster_path:
         return None
     return f"{TMDB_POSTER_BASE_URL}/{poster_path.lstrip('/')}"
+
+
+def imdb_url(imdb_id: str | None) -> str | None:
+    """Return a safe IMDb title URL only for a valid title identifier."""
+    if not imdb_id or not IMDB_ID_PATTERN.fullmatch(imdb_id):
+        return None
+    return f"{IMDB_TITLE_URL}/{imdb_id}/"
+
+
+def dates_in_horizon(
+    available: list[date],
+    start_date: date,
+    number_of_days: int,
+) -> list[date]:
+    """Return available dates within an inclusive forward-looking horizon."""
+    if number_of_days < 1:
+        raise ValueError("number_of_days must be at least 1")
+    end_date = date.fromordinal(start_date.toordinal() + number_of_days - 1)
+    return [value for value in available if start_date <= value <= end_date]

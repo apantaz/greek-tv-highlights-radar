@@ -24,10 +24,12 @@ The implemented platform currently:
 13. Connects current broadcasts to nullable canonical programme identity.
 14. Publishes mutable TMDB popularity and voting history as an analytical fact.
 15. Measures enrichment coverage by channel and schedule date.
-16. Ranks daily highlights through a versioned and decomposable scoring policy.
+16. Ranks daily highlights both within channels and across all available channels
+    through a versioned and decomposable scoring policy.
 17. Presents daily highlights and their ranking evidence through a read-only
     Streamlit application.
 18. Displays TMDB poster assets with an offline fallback and explicit attribution.
+19. Offers Athens-aware upcoming viewing horizons and validated IMDb detail links.
 
 The roadmap next expands the Streamlit application with archive search, programme
 details, enrichment coverage, and pipeline status.

@@ -286,10 +286,11 @@ snapshot to its canonical programme for historical popularity and voting analysi
 `mart_daily_enrichment_coverage` aggregates every broadcast fact by source, channel,
 and requested date, exposing pipeline coverage without hiding schedules that have no
 enrichment yet.
-`mart_daily_highlights` retains eligible broadcasts at observation grain and adds a
-deterministic rank within source, channel, and schedule date. It uses the latest
-available metric observation and exposes every raw input and normalized score
-component rather than persisting an opaque recommendation.
+`mart_daily_highlights` retains eligible broadcasts at observation grain and adds both
+a deterministic rank within source, channel, and schedule date and an overall rank
+across channels within source and schedule date. It uses the latest available metric
+observation and exposes every raw input and normalized score component rather than
+persisting an opaque recommendation.
 
 ## Legacy table
 
